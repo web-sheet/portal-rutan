@@ -1,0 +1,56 @@
+<?php
+
+use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\ItemRequestController;
+use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\StockHistoryController;
+use Illuminate\Support\Facades\Route;
+
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+
+    Route::post('/items', [ItemController::class, 'store']);
+
+
+    Route::put('/items/{id}', [ItemController::class, 'update']);
+    Route::delete('/items/{id}', [ItemController::class, 'destroy']);
+
+
+    // approval flow
+    Route::post('/requests/{id}/approve-kaur', [ItemRequestController::class, 'approveKaur']);
+    Route::post('/requests/{id}/approve-kasi', [ItemRequestController::class, 'approveKasi']);
+    Route::post('/requests/{id}/reject', [ItemRequestController::class, 'reject']);
+
+    Route::delete('/requests/{id}', [ItemRequestController::class, 'destroy']);
+
+    Route::get('/stock-history', [StockHistoryController::class, 'index']);
+    Route::apiResource('pegawai', PegawaiController::class);
+
+
+
+});
+
+
+
+Route::apiResource('absensi', AbsensiController::class);
+
+// PUBLIC
+Route::post('/requests', [ItemRequestController::class, 'store']);
+
+Route::get('/items', [ItemController::class, 'index']);
+
+Route::get('/requests/{name}', [ItemRequestController::class, 'byEmployee']);
+
+// ADMIN (sementara masih auth kalau kamu mau)
+Route::get('/admin/requests', [ItemRequestController::class, 'index']);
+
+Route::get('/requests', [ItemRequestController::class, 'index']);
+
+Route::get('/dashboard', [DashboardController::class, 'index']);
