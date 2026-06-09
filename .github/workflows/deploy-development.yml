@@ -19,6 +19,15 @@ jobs:
         uses: actions/checkout@v4
 
       # =========================
+      # DEBUG (boleh dihapus nanti)
+      # =========================
+      - name: Show Repository Structure
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 2 -type d
+
+      # =========================
       # BUILD VUE
       # =========================
       - name: Setup Node.js
@@ -27,11 +36,11 @@ jobs:
           node-version: 20
 
       - name: Install Frontend Dependencies
-        working-directory: frontend
+        working-directory: vue-project
         run: npm ci
 
       - name: Build Frontend
-        working-directory: frontend
+        working-directory: vue-project
         run: npm run build
 
       # =========================
@@ -45,13 +54,27 @@ jobs:
           ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
       # =========================
+      # PASTIKAN FOLDER ADA
+      # =========================
+      - name: Create Deployment Directories
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            mkdir -p domains/bapasjakpus.com/public_html/rutan/frontend
+            mkdir -p domains/bapasjakpus.com/public_html/rutan/backend
+
+      # =========================
       # DEPLOY FRONTEND
       # =========================
       - name: Deploy Frontend
         run: |
           rsync -avz --delete \
             -e "ssh -p ${{ secrets.PORT }}" \
-            frontend/dist/ \
+            vue-project/dist/ \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/bapasjakpus.com/public_html/rutan/frontend/
 
       # =========================
@@ -64,12 +87,12 @@ jobs:
             --exclude="vendor" \
             --exclude="node_modules" \
             --exclude=".git" \
-            --exclude="storage/logs" \
-            --exclude="storage/framework/cache" \
-            --exclude="storage/framework/sessions" \
-            --exclude="storage/framework/views" \
+            --exclude="storage/logs/**" \
+            --exclude="storage/framework/cache/**" \
+            --exclude="storage/framework/sessions/**" \
+            --exclude="storage/framework/views/**" \
             -e "ssh -p ${{ secrets.PORT }}" \
-            backend/ \
+            rutan-api/ \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/bapasjakpus.com/public_html/rutan/backend/
 
       # =========================
@@ -85,16 +108,19 @@ jobs:
           script: |
             cd domains/bapasjakpus.com/public_html/rutan/backend
 
-
+            echo "Installing Composer dependencies..."
             composer install --no-dev --optimize-autoloader --no-interaction
 
+            echo "Running migrations..."
             php artisan migrate --force
 
+            echo "Clearing caches..."
             php artisan route:clear
             php artisan config:clear
             php artisan cache:clear
             php artisan view:clear
 
+            echo "Optimizing..."
             php artisan optimize
 
             echo "Deploy selesai"
