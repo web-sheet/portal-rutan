@@ -1,0 +1,100 @@
+name: Deploy Rutan
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # =========================
+      # CHECKOUT
+      # =========================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # =========================
+      # BUILD VUE
+      # =========================
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
+
+      # =========================
+      # SETUP SSH
+      # =========================
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
+      # =========================
+      # DEPLOY FRONTEND
+      # =========================
+      - name: Deploy Frontend
+        run: |
+          rsync -avz --delete \
+            -e "ssh -p ${{ secrets.PORT }}" \
+            frontend/dist/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/bapasjakpus.com/public_html/rutan/frontend/
+
+      # =========================
+      # DEPLOY BACKEND
+      # =========================
+      - name: Deploy Backend
+        run: |
+          rsync -avz --delete \
+            --exclude=".env" \
+            --exclude="vendor" \
+            --exclude="node_modules" \
+            --exclude=".git" \
+            --exclude="storage/logs" \
+            --exclude="storage/framework/cache" \
+            --exclude="storage/framework/sessions" \
+            --exclude="storage/framework/views" \
+            -e "ssh -p ${{ secrets.PORT }}" \
+            backend/ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/bapasjakpus.com/public_html/rutan/backend/
+
+      # =========================
+      # LARAVEL COMMANDS
+      # =========================
+      - name: Run Laravel Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd domains/bapasjakpus.com/public_html/rutan/backend
+
+
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            php artisan migrate --force
+
+            php artisan route:clear
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan view:clear
+
+            php artisan optimize
+
+            echo "Deploy selesai"
