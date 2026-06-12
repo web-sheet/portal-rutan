@@ -37,10 +37,13 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: vue-project
+        
         run: npm install
 
       - name: Build Frontend
         working-directory: vue-project
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
       # =========================
