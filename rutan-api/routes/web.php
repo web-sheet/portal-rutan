@@ -10,3 +10,4 @@ Route::post('/logout', [AuthController::class, 'logout']);
 Route::get('/login', function () {
     return response()->json(['message' => 'login page']);
 })->name('login');
+
