@@ -22,8 +22,6 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/items/{id}', [ItemController::class, 'update']);
     Route::delete('/items/{id}', [ItemController::class, 'destroy']);
 
-
-    // approval flow
     Route::post('/requests/{id}/approve-kaur', [ItemRequestController::class, 'approveKaur']);
     Route::post('/requests/{id}/approve-kasi', [ItemRequestController::class, 'approveKasi']);
     Route::post('/requests/{id}/reject', [ItemRequestController::class, 'reject']);
