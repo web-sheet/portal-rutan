@@ -140,7 +140,7 @@ const openMenus = ref({})
 
 // Data master menu
 const menus = [
-  { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
+  
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
