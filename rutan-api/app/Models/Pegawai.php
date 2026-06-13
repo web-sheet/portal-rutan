@@ -16,10 +16,7 @@ class Pegawai extends Model
         'status',
     ];
 
-    //     public function absensis()
-    // {
-    //     return $this->hasMany(Absensi::class);
-    // }
+  
 
     public function absensi()
     {

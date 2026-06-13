@@ -72,4 +72,6 @@ class PegawaiController extends Controller
             'message' => 'Data berhasil dihapus'
         ]);
     }
+
+ 
 }

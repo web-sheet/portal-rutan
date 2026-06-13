@@ -45,8 +45,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
 
+    Route::post('/items/bulk-delete', [ItemController::class, 'bulkDelete']);
 
+    Route::post('/items/import-excel', [ItemController::class, 'importExcel']);
 
+   
 });
 
 
@@ -66,3 +69,5 @@ Route::get('/admin/requests', [ItemRequestController::class, 'index']);
 Route::get('/requests', [ItemRequestController::class, 'index']);
 
 Route::get('/dashboard', [DashboardController::class, 'index']);
+
+ Route::get('/pegawai', [PegawaiController::class, 'index']);
