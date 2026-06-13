@@ -67,6 +67,18 @@ const router = createRouter({
           name: "absensi",
                component: () => import("@/pages/absensi/AbsensiView.vue"),
         },
+
+                {
+          path: "/profile",
+          name: "profile",
+               component: () => import("@/pages/Profile.vue"),
+        },
+
+                        {
+          path: "/users-management",
+          name: "users-management",
+               component: () => import("@/pages/UserManagement.vue"),
+        },
       ],
     },
   ],

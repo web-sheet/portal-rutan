@@ -15,7 +15,7 @@ const auth = useAuthStore()
 const toast = useToast()
 
 const form = reactive({
-  email: '',
+  login: '',
   password: '',
 })
 
@@ -27,7 +27,7 @@ const submit = async () => {
   loading.submit = true
 
   try {
-    await auth.login(form.email, form.password)
+    await auth.login(form.login, form.password)
     router.push('/dashboard')
   } catch (err) {
     toast.add({
@@ -65,10 +65,10 @@ const submit = async () => {
         <form @submit.prevent="submit" class="flex flex-col gap-4 mt-3">
           
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-slate-700">Email</label>
+            <label class="text-sm font-medium text-slate-700">Username / Email</label>
             <InputText
-              v-model="form.email"
-              type="email"
+              v-model="form.login"
+             
               placeholder="Masukkan email"
               class="w-full"
               required
