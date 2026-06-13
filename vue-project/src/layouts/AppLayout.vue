@@ -19,7 +19,11 @@
       </header>
 
       <main class="flex-1 p-4 md:p-6 overflow-auto">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="page-fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </main>
     </div>
 
@@ -29,7 +33,29 @@
 <script setup>
 import { ref } from 'vue'
 import Button from 'primevue/button'
-import Sidebar from '@/components/Sidebar.vue' // Sesuaikan path-nya
+import Sidebar from '@/components/Sidebar.vue'
 
 const sidebarVisible = ref(false)
 </script>
+
+<style scoped>
+/* ─── ANIMASI TRANSISI HALAMAN (ANTI-FLICKER) ─── */
+
+/* Durasi & timing function (memanfaatkan akselerasi hardware GPU) */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.20s ease, transform 0.20s ease;
+  will-change: opacity, transform;
+}
+
+/* Keadaan awal sebelum masuk & Keadaan akhir setelah keluar */
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px); /* Halaman baru sedikit bergeser dari bawah ke atas */
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px); /* Halaman lama sedikit meluncur ke atas saat memudar */
+}
+</style>
