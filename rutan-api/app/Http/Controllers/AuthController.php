@@ -67,7 +67,7 @@ class AuthController extends Controller
 
     public function logout()
     {
-        // Melakukan invalidate pada token JWT agar tidak bisa digunakan lagi
+       
         auth('api')->logout();
 
         return response()->json(['message' => 'Berhasil keluar dari sistem rutan']);
