@@ -39,7 +39,7 @@
                 <Column field="item_name" header="Barang" />
 
                 <!-- desktop only -->
-                <Column field="division" header="Divisi" :pt="{
+                <Column field="division" header="Jabatan" :pt="{
                     headerCell: { class: 'hidden md:table-cell' },
                     bodyCell: { class: 'hidden md:table-cell' }
                 }" />
@@ -227,7 +227,7 @@
             :style="{ width: '95vw', maxWidth: '450px' }">
             <div v-if="selectedRequest" class="space-y-3">
                 <p><b>Pegawai:</b> {{ selectedRequest.employee_name }}</p>
-                <p><b>Divisi:</b> {{ selectedRequest.division }}</p>
+                <p><b>Jabatan:</b> {{ selectedRequest.division }}</p>
                 <p><b>Barang:</b> {{ selectedRequest.item_name }}</p>
                 <p><b>Kategori:</b> {{ selectedRequest.category }}</p>
                 <p><b>Jumlah:</b> {{ selectedRequest.stock_requested }}</p>
