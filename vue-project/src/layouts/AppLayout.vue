@@ -7,14 +7,13 @@
     <Sidebar 
       v-model:visible="sidebarVisible" 
       @close="sidebarVisible = false" 
-      class="z-30 w-[280px] sm:w-[320px]"
-      :transitionOptions="'animation-duration: 300ms; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);'"
+      class="z-30"
     />
 
     <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden z-10">
       
       <header class="md:hidden bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 flex items-center justify-between flex-shrink-0">
-        <Button icon="pi pi-bars" text rounded @click="sidebarVisible = true" class="active:scale-95 transition-transform duration-150" />
+        <Button icon="pi pi-bars" text rounded @click="sidebarVisible = true" class="active:scale-95 transition-transform duration-100" />
         <h1 class="font-semibold text-slate-800 tracking-wide">RUTAN APP</h1>
         <div class="w-9"></div>
       </header>
@@ -40,27 +39,17 @@ const sidebarVisible = ref(false)
 </script>
 
 <style scoped>
-/* ─── ANIMASI TRANSISI HALAMAN ─── */
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity 0.20s ease, transform 0.20s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
   will-change: opacity, transform;
 }
 .page-fade-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(4px);
 }
 .page-fade-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
-}
-</style>
-
-<style>
-/* ─── GLOBAL OVERRIDE UNTUK BACKDROP UTK EMULASI MOBILE FLUID ─── */
-/* Mencegah kedipan kaku pada area gelap (mask) di belakang sidebar */
-.p-component-overlay {
-  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-  backdrop-filter: blur(4px); /* Menambah efek blur estetik saat sidebar mobile terbuka */
+  transform: translateY(-4px);
 }
 </style>

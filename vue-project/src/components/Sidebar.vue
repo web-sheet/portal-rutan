@@ -1,5 +1,11 @@
 <template>
-  <Drawer :visible="visible" @update:visible="$emit('update:visible', $value)" position="left" class="w-72">
+  <Drawer 
+    :visible="visible" 
+    @update:visible="$emit('update:visible', $event)" 
+    position="left" 
+    class="w-72"
+    :transitionOptions="'animation-duration: 250ms; animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);'"
+  >
     <template #container>
       <div class="h-full flex flex-col bg-white">
         <div class="px-6 py-5 border-b border-slate-200">
@@ -27,25 +33,25 @@
         <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
           <div v-for="menu in filteredMenus" :key="menu.label">
             <RouterLink v-if="!menu.children" :to="menu.to"
-              class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100"
+              class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors duration-150"
               active-class="bg-emerald-500 text-white" @click="$emit('close')">
               <i :class="menu.icon"></i>
               <span>{{ menu.label }}</span>
             </RouterLink>
 
             <div v-else>
-              <div class="flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 font-medium hover:bg-slate-100 cursor-pointer"
+              <div class="flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 font-medium hover:bg-slate-100 cursor-pointer transition-colors duration-150"
                 @click="toggleMenu(menu.label)">
                 <div class="flex items-center gap-3">
                   <i :class="menu.icon"></i>
                   <span>{{ menu.label }}</span>
                 </div>
-                <i class="pi" :class="openMenus[menu.label] ? 'pi-chevron-down' : 'pi-chevron-right'" />
+                <i class="pi transition-transform duration-200" :class="openMenus[menu.label] ? 'pi-chevron-down rotate-180' : 'pi-chevron-right'" />
               </div>
 
-              <div v-if="openMenus[menu.label]" class="ml-6 space-y-1">
+              <div v-if="openMenus[menu.label]" class="ml-6 space-y-1 sub-menu-active animate-fade-in">
                 <RouterLink v-for="child in menu.children" :key="child.to" :to="child.to"
-                  class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100"
+                  class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors duration-150"
                   active-class="bg-emerald-500 text-white" @click="$emit('close')">
                   <i :class="child.icon"></i>
                   <span>{{ child.label }}</span>
@@ -129,18 +135,17 @@ import Drawer from 'primevue/drawer'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
+// Memperbaiki pembacaan binding v-model agar sinkron sempurna dengan parent
 defineProps({
   visible: Boolean
 })
-const emit = defineEmits(['update:visible', 'close'])
+defineEmits(['update:visible', 'close'])
 
 const auth = useAuthStore()
 const router = useRouter()
 const openMenus = ref({})
 
-// Data master menu
 const menus = [
-  
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
@@ -158,7 +163,6 @@ const menus = [
       { label: 'Absensi', to: '/absensi', icon: 'pi pi-calendar' },
     ]
   },
-  // TAMBAHAN MENU BARU KHUSUS ROLE ADMIN
   {
     label: 'Manajemen Petugas',
     icon: 'pi pi-cog',
@@ -168,14 +172,8 @@ const menus = [
   { label: 'Profile', icon: 'pi pi-user', to: '/profile' },
 ]
 
-// Filter menu dinamis bersandarkan role admin
 const filteredMenus = computed(() => {
-  return menus.filter(menu => {
-    if (menu.isAdminOnly && !auth.isAdmin) {
-      return false
-    }
-    return true
-  })
+  return menus.filter(menu => !menu.isAdminOnly || auth.isAdmin)
 })
 
 const toggleMenu = (label) => {
@@ -187,3 +185,13 @@ const handleLogout = async () => {
   router.push('/')
 }
 </script>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
