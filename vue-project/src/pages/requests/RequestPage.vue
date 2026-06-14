@@ -168,11 +168,24 @@ const selectedPegawai = ref(null);
 
 const form = ref({ employee_name: "", division: "", item_id: null, stock_requested: 1 });
 
-onMounted(async () => {
-  await store.fetchItems();
-  await store.fetchRequests();
-  await fetchAllPegawai(); // Ambil seluruh data pegawai saat komponen siap
+// onMounted(async () => {
+//   await store.fetchItems();
+//   await store.fetchRequests();
+//   await fetchAllPegawai(); // Ambil seluruh data pegawai saat komponen siap
+// });
+
+
+onMounted(() => {
+  // Menjalankan semua request secara paralel (bersamaan) tanpa saling mengantre
+  Promise.all([
+    store.fetchItems(),
+    store.fetchRequests(),
+    fetchAllPegawai()
+  ]).catch(error => {
+    console.error("Ada request yang gagal dimuat di awal", error);
+  });
 });
+
 
 const fetchAllPegawai = async () => {
   try {
