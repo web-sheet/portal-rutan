@@ -10,7 +10,6 @@ console.log("API URL:", import.meta.env.VITE_API_URL);
 //   baseURL: 'http://localhost:8000/api',
 // });
 
-
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
