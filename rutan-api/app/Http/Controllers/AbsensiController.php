@@ -16,7 +16,7 @@ class AbsensiController extends Controller
         $bulan = request('bulan');
         $tahun = request('tahun');
 
-        $pegawais = Pegawai::with([
+        $pegawais = Pegawai::where('status', 'aktif')->with([
             'absensi' => function ($query) use ($bulan, $tahun) {
 
                 $query->whereMonth('tanggal', $bulan)

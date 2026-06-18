@@ -31,7 +31,14 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/requests/{id}', [ItemRequestController::class, 'destroy']);
 
     Route::get('/stock-history', [StockHistoryController::class, 'index']);
-    Route::apiResource('pegawai', PegawaiController::class);
+
+
+    // Pastikan endpoint ditaruh di atas route resource jika menggunakan apiResource
+    Route::post('/pegawais/import', [PegawaiController::class, 'importExcel']);
+    Route::post('/pegawais/bulk-delete', [PegawaiController::class, 'bulkDelete']);
+
+
+    Route::apiResource('pegawais', PegawaiController::class);
 
 
 
@@ -48,8 +55,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/items/bulk-delete', [ItemController::class, 'bulkDelete']);
 
     Route::post('/items/import-excel', [ItemController::class, 'importExcel']);
-
-   
 });
 
 
@@ -70,4 +75,4 @@ Route::get('/requests', [ItemRequestController::class, 'index']);
 
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
- Route::get('/pegawai', [PegawaiController::class, 'index']);
+Route::get('/pegawai', [PegawaiController::class, 'index']);

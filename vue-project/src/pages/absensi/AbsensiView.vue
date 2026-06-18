@@ -1,11 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useAbsensiStore } from "@/stores/absensi";
-
-
+import { useToast } from "primevue/usetoast"; // <-- 1. Import Toast
+import Toast from "primevue/toast";
 
 const store = useAbsensiStore();
-
+const toast = useToast(); // <-- 2. Inisialisasi service Toast
 const bulan = ref(new Date().getMonth() + 1);
 const tahun = ref(new Date().getFullYear());
 
@@ -91,7 +91,7 @@ const statusOptions = [
 ];
 
 
- 
+
 const saveStatus = async (pegawaiId, date, value) => {
 
     const tanggal = `${tahun.value}-${String(bulan.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
@@ -118,9 +118,16 @@ const saveStatus = async (pegawaiId, date, value) => {
 
 const search = ref('');
 const selectedDate = ref(null);
+const selectedStatus = ref(null); // <-- Tambahkan ref baru untuk filter status
 
 const start = ref(1); // mulai dari tanggal 1
 const windowSize = 10;
+
+watch(selectedDate, (newDate) => {
+    if (!newDate) {
+        selectedStatus.value = null;
+    }
+});
 
 const ranges = computed(() => {
 
@@ -140,21 +147,50 @@ const ranges = computed(() => {
 
 });
 
- 
+
+
+// const filteredData = computed(() => {
+//     if (!search.value) return store.data;
+
+//     return store.data.filter(p =>
+//         p.nama.toLowerCase().includes(search.value.toLowerCase())
+//     );
+// });
 
 const filteredData = computed(() => {
-    if (!search.value) return store.data;
+    let result = store.data;
 
-    return store.data.filter(p =>
-        p.nama.toLowerCase().includes(search.value.toLowerCase())
-    );
+    // 1. Filter berdasarkan nama pencarian
+    if (search.value) {
+        result = result.filter(p =>
+            p.nama.toLowerCase().includes(search.value.toLowerCase())
+        );
+    }
+
+    // 2. Filter berdasarkan Status Kehadiran pada Tanggal Tertentu
+    // Hanya berjalan jika KEDUA filter (Tanggal & Status) terisi
+    if (selectedDate.value && selectedStatus.value) {
+        result = result.filter(p => {
+            const statusPegawai = p.absensi?.[selectedDate.value];
+
+            // Jika memilih status '-', cari data yang absensinya kosong/null
+            if (selectedStatus.value === '-') {
+                return !statusPegawai;
+            }
+
+            return statusPegawai === selectedStatus.value;
+        });
+    }
+
+    return result;
 });
 
 const years = [
-    2024,
-    2025,
     2026,
     2027,
+    2028,
+    2029,
+    2030
 ];
 
 const statusList = ['-', 'hadir', 'izin', 'sakit', 'cuti', 'alpha'];
@@ -172,11 +208,11 @@ const cycleStatus = (pegawai, date) => {
 
 
 const bulkDate = ref(null);
-const bulkStatus = ref('hadir'); 
+const bulkStatus = ref('hadir');
 const selectedPegawai = ref([]);
- 
 
- 
+
+
 const filteredList = ref([]);
 
 const onSearch = (event) => {
@@ -187,9 +223,48 @@ const onSearch = (event) => {
 
 
 
-const applyBulk = async () => {
+// const applyBulk = async () => {
 
-    if (!bulkDate.value || !bulkStatus.value) return;
+//     if (!bulkDate.value || !bulkStatus.value) return;
+
+//     const target = selectedPegawai.value.length
+//         ? selectedPegawai.value
+//         : store.data;
+
+//     const promises = [];
+
+//     target.forEach(pegawai => {
+
+//         const tanggal = `${tahun.value}-${String(bulan.value).padStart(2, '0')}-${String(bulkDate.value).padStart(2, '0')}`;
+
+//         // optimistic update
+//         if (!pegawai.absensi) pegawai.absensi = {};
+//         pegawai.absensi[bulkDate.value] = bulkStatus.value;
+
+//         promises.push(
+//             store.saveAbsensi({
+//                 pegawai_id: pegawai.id,
+//                 tanggal,
+//                 status: bulkStatus.value
+//             })
+//         );
+
+//     });
+
+//     await Promise.all(promises);
+// };
+
+const applyBulk = async () => {
+    // 1. Validasi awal + Toast Peringatan jika kosong
+    if (!bulkDate.value || !bulkStatus.value) {
+        toast.add({
+            severity: 'warn',
+            summary: 'Peringatan',
+            detail: 'Silakan pilih tanggal dan status absensi terlebih dahulu.',
+            life: 3000
+        });
+        return;
+    }
 
     const target = selectedPegawai.value.length
         ? selectedPegawai.value
@@ -198,10 +273,9 @@ const applyBulk = async () => {
     const promises = [];
 
     target.forEach(pegawai => {
-
         const tanggal = `${tahun.value}-${String(bulan.value).padStart(2, '0')}-${String(bulkDate.value).padStart(2, '0')}`;
 
-        // optimistic update
+        // Optimistic update (UI langsung berubah instant)
         if (!pegawai.absensi) pegawai.absensi = {};
         pegawai.absensi[bulkDate.value] = bulkStatus.value;
 
@@ -212,10 +286,38 @@ const applyBulk = async () => {
                 status: bulkStatus.value
             })
         );
-
     });
 
-    await Promise.all(promises);
+    // 2. Jalankan API dengan bungkus try-catch agar Toast tahu statusnya
+    try {
+        store.loading = true; // Opsional jika store Anda punya state loading
+        await Promise.all(promises);
+
+        // Toast Sukses
+        toast.add({
+            severity: 'success',
+            summary: 'Berhasil',
+            detail: `Absensi massal berhasil diterapkan untuk ${target.length} pegawai.`,
+            life: 3000
+        });
+
+        // Bersihkan form aksi bulk setelah sukses agar tidak sengaja ter-klik double
+
+        selectedPegawai.value = [];
+
+    } catch (error) {
+        console.error("Gagal apply bulk absensi:", error);
+
+        // Toast Gagal
+        toast.add({
+            severity: 'error',
+            summary: 'Gagal',
+            detail: 'Terjadi kesalahan sistem saat menyimpan absensi massal.',
+            life: 4000
+        });
+    } finally {
+        store.loading = false;
+    }
 };
 
 const isLastRange = computed(() => {
@@ -281,7 +383,7 @@ const enrichedData = computed(() => {
 
     <div class="p-4">
 
-
+        <Toast />
 
         <!-- HEADER -->
 
@@ -325,8 +427,18 @@ const enrichedData = computed(() => {
 
             <!-- FILTER TANGGAL -->
 
-            <Select v-model="selectedDate" :options="dates" placeholder="Filter Tanggal" class="w-full md:w-44"
-                showClear />
+            <div class="flex flex-wrap items-center gap-3">
+                <Select v-model="selectedDate" :options="Array.from({ length: daysInMonth }, (_, i) => i + 1)"
+                    placeholder="Pilih Tanggal" showClear class="w-40" />
+
+                <Select v-model="selectedStatus" :options="['-', ...statusList.filter(s => s !== '-')]"
+                    placeholder="Pilih Status" :disabled="!selectedDate" showClear class="w-40">
+                    <template #option="slotProps">
+                        <span class="capitalize">{{ slotProps.option === '-' ? 'Belum Absen' : slotProps.option
+                            }}</span>
+                    </template>
+                </Select>
+            </div>
 
 
 
@@ -335,6 +447,8 @@ const enrichedData = computed(() => {
 
 
         </div>
+
+
 
         <div class="flex gap-2 mb-3">
 
@@ -343,23 +457,42 @@ const enrichedData = computed(() => {
 
         </div>
 
+        <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 mb-6 mt-6 shadow-sm">
 
-        <div class="p-3  rounded mb-4 space-y-3 gap-3">
+            <div class="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200/60 text-slate-700">
+                <h4 class="text-sm font-semibold tracking-wide uppercase">
+                    Aksi Massal
+                </h4>
+                <span class="text-xs text-slate-400 font-normal normal-case ml-1">
+                    Isi absensi untuk banyak pegawai sekaligus
+                </span>
+            </div>
 
-            <!-- DATE -->
-            <Select v-model="bulkDate" :options="dates" placeholder="Pilih Tanggal" class="w-40 " />
+            <div class="flex flex-wrap items-center gap-4">
 
-            <!-- STATUS -->
-            <Select v-model="bulkStatus" :options="statusOptions" optionLabel="label" optionValue="value"
-                placeholder="Status" class="w-40 mx-4" />
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 tracking-wide uppercase px-0.5">Tanggal</label>
+                    <Select v-model="bulkDate" :options="dates" placeholder="Pilih Tanggal" class="w-40 shadow-sm" />
+                </div>
 
-            <AutoComplete v-model="selectedPegawai" multiple forceSelection optionLabel="nama"
-                :suggestions="filteredList" @complete="onSearch" class="w-150"/>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 tracking-wide uppercase px-0.5">Status</label>
+                    <Select v-model="bulkStatus" :options="statusOptions" optionLabel="label" optionValue="value"
+                        placeholder="Pilih Status" class="w-40 shadow-sm" />
+                </div>
 
+                <div class="flex-1 min-w-[250px] flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 tracking-wide uppercase px-0.5">Target
+                        Pegawai</label>
+                    <AutoComplete v-model="selectedPegawai" multiple forceSelection optionLabel="nama"
+                        :suggestions="filteredList" @complete="onSearch"
+                        placeholder="Ketik nama pegawai (kosongkan untuk semua)..." class="w-full shadow-sm" />
+                </div>
 
-            <!-- APPLY -->
-            <Button label="Apply Bulk" icon="pi pi-check" severity="success" @click="applyBulk" class=" mx-4" />
+                <Button label="Terapkan Absensi" icon="pi pi-check" severity="success" @click="applyBulk"
+                    class="shadow-sm active:scale-95 transition-transform duration-150 px-4 self-end h-[38px]" />
 
+            </div>
         </div>
 
 
@@ -379,40 +512,26 @@ const enrichedData = computed(() => {
 
 
 
-                    <!-- NAMA -->
+
 
                     <Column field="nama" header="Nama Pegawai" frozen style="min-width: 220px" />
 
 
 
-                    <!-- TANGGAL -->
-
-                    <Column v-for="date in visibleDates" :key="date" :header="date" style="min-width: 50px">
-
-
-
-                        <template #body="{ data }">
-
-
-
-                            <div class="flex items-center justify-center">
-
- 
-
-                                <button class=" text-xs px-2 py-1 rounded" @click="cycleStatus(data, date)">
-                                    {{ data.absensi?.[date] ?? '-' }}
-                                </button>
-
-
-
+                    <Column v-for="date in visibleDates" :key="date" style="min-width: 50px" bodyClass="text-center">
+                        <template #header>
+                            <div class="w-full flex justify-center text-center font-semibold">
+                                {{ date }}
                             </div>
-
-
-
                         </template>
 
-
-
+                        <template #body="{ data }">
+                            <div class="flex items-center justify-center">
+                                <button class="text-xs px-2 py-1 rounded" @click="cycleStatus(data, date)">
+                                    {{ data.absensi?.[date] ?? '-' }}
+                                </button>
+                            </div>
+                        </template>
                     </Column>
 
                     <Column v-if="isLastRange" header="Summary" frozen alignFrozen="right">

@@ -1,7 +1,7 @@
 <template>
   <!-- Gunakan v-if untuk memastikan data dashboard sudah dimuat agar tidak error saat akses properti -->
   <div v-if="dashboard" class="p-4 space-y-6">
-    
+
     <!-- HEADER -->
     <div>
       <h1 class="text-3xl font-bold">Dashboard</h1>
@@ -64,14 +64,9 @@
       <Card>
         <template #title>Permohonan Bulanan</template>
         <template #content>
-          <div class="h-75 w-full">
+          <div class="h-72 w-full">
             <!-- Pastikan data ada sebelum render Chart -->
-            <Chart 
-              v-if="chartData.datasets[0].data.length > 0"
-              type="bar" 
-              :data="chartData" 
-              :options="chartOptions" 
-            />
+            <Chart v-if="chartData.datasets[0].data.length > 0" type="bar" :data="chartData" :options="chartOptions" />
             <div v-else class="flex items-center justify-center h-full text-gray-400">
               Memuat grafik...
             </div>
@@ -184,6 +179,9 @@ const chartData = computed(() => {
 const chartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
+  layout: {
+    padding: 0 // Menghilangkan margin/padding internal bawaan dari Chart.js
+  },
   plugins: {
     legend: {
       labels: { color: '#4b5563' }
