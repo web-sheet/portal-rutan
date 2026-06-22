@@ -89,7 +89,6 @@ const router = createRouter({
         {
           path: "/absensi/template",
           name: "absensi.template",
-          // Menggunakan lazy-loading agar aplikasi lebih ringan saat di-load pertama kali
           component: () => import("@/views/AbsensiTemplate.vue"),
         },
 
