@@ -6,7 +6,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import Login from "@/pages/Login.vue";
 import DashboardPage from "@/pages/DashboardPage.vue";
 
-// public page
+ 
 import PublicLanding from "@/pages/PublicLanding.vue";
 
 const router = createRouter({
@@ -33,8 +33,7 @@ const router = createRouter({
       component: () => import("@/pages/requests/RequestPage.vue"),
       meta: { public: true },
     },
-
-    // ADMIN AREA
+ 
     {
       path: "/",
       component: AppLayout,
