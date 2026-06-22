@@ -17,13 +17,14 @@
                 <InputText v-model="search" placeholder="search" class=" w-full pl-0" />
             </span>
 
-            <!-- STATUS -->
             <Select v-model="statusFilter" :options="[
-                { label: 'Pending', value: 'pending' },
-                { label: 'Approved Kaur', value: 'approved_kaur' },
-                { label: 'Completed', value: 'completed' },
-                { label: 'Rejected', value: 'rejected' }
+                { label: 'Menunggu Persetujuan Kaur', value: 'pending' },
+                { label: 'Menunggu Persetujuan Kasi', value: 'approved_kaur' },
+                { label: 'Disetujui Kasi', value: 'approved_kasi' },
+                { label: 'Selesai', value: 'completed' },
+                { label: 'Ditolak', value: 'rejected' }
             ]" optionLabel="label" optionValue="value" placeholder="Filter Status" showClear class="w-full md:w-56" />
+
         </div>
         <p class="text-sm text-gray-500 mb-3">
             Total: {{ filteredRequests.length }} permohonan
@@ -74,9 +75,15 @@
                 </Column>
 
                 <!-- status always visible -->
-                <Column header="Status">
+                <!-- <Column header="Status">
                     <template #body="{ data }">
                         <Tag :value="data.status" :severity="statusColor(data.status)" />
+                    </template>
+                </Column> -->
+
+                <Column header="Status">
+                    <template #body="{ data }">
+                        <Tag :value="getStatusLabel(data.status)" :severity="statusColor(data.status)" />
                     </template>
                 </Column>
 
@@ -96,19 +103,17 @@
                                 <Button icon="pi pi-eye" size="small" severity="info" @click="openDetail(data)" />
                             </div>
                             <!-- APPROVE KAUR -->
-                            <Button v-if="data.status === 'pending'" icon="pi pi-check-circle" severity="warning"
-                                size="small" @click="openApprove(data, 'kaur')">
-                                <!-- <span class="hidden md:inline ml-2">Approve</span> -->
-                            </Button>
+                            <Button v-if="data.status === 'pending' && (auth.isPerlengkapan || auth.isAdmin)"
+                                icon="pi pi-check-circle" severity="warning" size="small"
+                                @click="openApprove(data, 'perlengkapan')" />
 
                             <!-- APPROVE KASI -->
-                            <Button v-if="data.status === 'approved_kaur'" icon="pi pi-check-circle" severity="success"
-                                size="small" @click="openApprove(data, 'kasi')">
-                                <!-- <span class="hidden md:inline ml-2">Approve</span> -->
-                            </Button>
+                            <Button v-if="data.status === 'approved_kaur' && (auth.isKasi || auth.isAdmin)"
+                                icon="pi pi-check-circle" severity="success" size="small"
+                                @click="openApprove(data, 'kasi')" />
 
-                            <!-- REJECT -->
-                            <Button v-if="data.status !== 'completed' && data.status !== 'rejected'" icon="pi pi-times"
+                            <Button v-if="(data.status === 'pending' && (auth.isPerlengkapan || auth.isAdmin)) ||
+                                (data.status === 'approved_kaur' && (auth.isKasi || auth.isAdmin))" icon="pi pi-times"
                                 size="small" severity="danger" @click="reject(data.id)" />
 
 
@@ -282,7 +287,7 @@
                 <div>
                     <p class="text-sm text-gray-500 mb-1">
 
-                        <span v-if="approvalType === 'kaur'">
+                        <span v-if="approvalType === 'perlengkapan'">
                             Qty rekomendasi Kaur:
                         </span>
 
@@ -296,7 +301,7 @@
                 </div>
 
                 <!-- ACTION -->
-                <Button :label="approvalType === 'kaur' ? 'Approve Kaur' : 'Approve Kasi'" icon="pi pi-check"
+                <Button :label="approvalType === 'perlengkapan' ? 'Approve Kaur' : 'Approve Kasi'" icon="pi pi-check"
                     @click="submitApproval" />
 
             </div>
@@ -322,13 +327,17 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import { useRequestStore } from "@/stores/request";
 import Menu from 'primevue/menu'
 import { useConfirm } from "primevue/useconfirm";
+import { useAuthStore } from "@/stores/auth";
+const auth = useAuthStore();
+import { useRoute, useRouter } from 'vue-router'; // 1. Import useRoute
 
 const confirm = useConfirm();
-
+const route = useRoute();   // 2. Deklarasikan route
+const router = useRouter(); // 3. Deklarasikan router (untuk nanti clear query)
 const detailDialog = ref(false);
 
 const openDetail = (data) => {
@@ -369,19 +378,39 @@ const selectedRequest = ref(null);
 
 const store = useRequestStore();
 
+
+
+
 onMounted(async () => {
     await store.fetchRequests();
+
+
 });
+
+
+
 
 /* STATUS COLOR */
 const statusColor = (status) => {
-    if (status === "pending") return "warning";
+    if (status === "pending") return "warn"; // Gunakan 'warn' (bukan warning)
     if (status === "approved_kaur") return "info";
     if (status === "approved_kasi") return "success";
-    if (status === "rejected") return "danger";
     if (status === "completed") return "success";
+    if (status === "rejected") return "danger";
 
     return "secondary";
+};
+
+/* MAPPING LABEL STATUS */
+const getStatusLabel = (status) => {
+    const labels = {
+        'pending': 'Menunggu Persetujuan Kaur',
+        'approved_kaur': 'Menunggu Persetujuan Kasi',
+        'approved_kasi': 'Disetujui Kasi',
+        'completed': 'Selesai',
+        'rejected': 'Ditolak'
+    };
+    return labels[status] || status;
 };
 
 
@@ -426,12 +455,27 @@ const approvalData = ref(null);
 const approvalQty = ref(0);
 const approvalType = ref(""); // kaur / kasi
 const search = ref("");
-const statusFilter = ref(null);
+// const statusFilter = ref(null);
+
+// Ganti ref(null) dengan ini:
+const statusFilter = computed({
+    get: () => route.query.status || null,
+    set: (val) => {
+        router.push({
+            query: { ...route.query, status: val || undefined }
+        });
+    }
+});
 
 const filteredRequests = computed(() => {
-    return store.requests.filter((item) => {
+    // 1. Cek data kosong DI LUAR filter
+    if (!store.requests || store.requests.length === 0) return [];
 
-        // SEARCH
+    // 2. Jalankan filter
+    return store.requests.filter((item) => {
+        // Debugging di luar filter atau di sini aman
+        // console.log("Filter Status saat ini:", statusFilter.value);
+
         const keyword = search.value.toLowerCase();
 
         const matchesSearch =
@@ -441,6 +485,7 @@ const filteredRequests = computed(() => {
             item.category?.toLowerCase().includes(keyword);
 
         // STATUS FILTER
+        // Pastikan item.status ada dan perbandingannya tepat
         const matchesStatus =
             !statusFilter.value ||
             item.status === statusFilter.value;
@@ -449,6 +494,7 @@ const filteredRequests = computed(() => {
     });
 });
 
+ 
 
 const openApprove = async (data, type) => {
     await store.fetchRequests();
@@ -458,7 +504,7 @@ const openApprove = async (data, type) => {
     approvalData.value = freshData;
     approvalType.value = type;
 
-    if (type === "kaur") {
+    if (type === "perlengkapan") {
         approvalQty.value = freshData.stock_requested;
     } else {
         approvalQty.value =
@@ -471,7 +517,7 @@ const openApprove = async (data, type) => {
 
 const submitApproval = async () => {
 
-    if (approvalType.value === "kaur") {
+    if (approvalType.value === "perlengkapan") {
         await store.approveKaur(approvalData.value.id, approvalQty.value);
     }
 

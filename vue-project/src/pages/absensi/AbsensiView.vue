@@ -3,6 +3,10 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useAbsensiStore } from "@/stores/absensi";
 import { useToast } from "primevue/usetoast"; // <-- 1. Import Toast
 import Toast from "primevue/toast";
+// Tambahkan di script setup Absensi.vue
+import { jsPDF } from "jspdf";
+
+import Calendar from 'primevue/calendar';
 
 const store = useAbsensiStore();
 const toast = useToast(); // <-- 2. Inisialisasi service Toast
@@ -149,13 +153,6 @@ const ranges = computed(() => {
 
 
 
-// const filteredData = computed(() => {
-//     if (!search.value) return store.data;
-
-//     return store.data.filter(p =>
-//         p.nama.toLowerCase().includes(search.value.toLowerCase())
-//     );
-// });
 
 const filteredData = computed(() => {
     let result = store.data;
@@ -222,37 +219,6 @@ const onSearch = (event) => {
 };
 
 
-
-// const applyBulk = async () => {
-
-//     if (!bulkDate.value || !bulkStatus.value) return;
-
-//     const target = selectedPegawai.value.length
-//         ? selectedPegawai.value
-//         : store.data;
-
-//     const promises = [];
-
-//     target.forEach(pegawai => {
-
-//         const tanggal = `${tahun.value}-${String(bulan.value).padStart(2, '0')}-${String(bulkDate.value).padStart(2, '0')}`;
-
-//         // optimistic update
-//         if (!pegawai.absensi) pegawai.absensi = {};
-//         pegawai.absensi[bulkDate.value] = bulkStatus.value;
-
-//         promises.push(
-//             store.saveAbsensi({
-//                 pegawai_id: pegawai.id,
-//                 tanggal,
-//                 status: bulkStatus.value
-//             })
-//         );
-
-//     });
-
-//     await Promise.all(promises);
-// };
 
 const applyBulk = async () => {
     // 1. Validasi awal + Toast Peringatan jika kosong
@@ -373,6 +339,171 @@ const enrichedData = computed(() => {
 });
 
 
+
+
+// Di script setup
+const tanggalCetak = ref(new Date()); // Default hari ini
+
+
+const cetakLaporan = async () => {
+    toast.add({
+        severity: 'info',
+        summary: 'Memproses PDF',
+        detail: 'Membuat halaman dokumen secara presisi...',
+        life: 2500
+    });
+
+    // 1. Tentukan jumlah baris maksimal pegawai per halaman (15 baris)
+    const BARIS_PER_HALAMAN = 15;
+
+    // Pecah data pegawai menjadi kelompok-kelompok kecil berisi 15 data
+    const kelompokPegawai = [];
+    for (let i = 0; i < enrichedData.value.length; i += BARIS_PER_HALAMAN) {
+        kelompokPegawai.push(enrichedData.value.slice(i, i + BARIS_PER_HALAMAN));
+    }
+
+    // 2. Siapkan dokumen kertas A4 Posisi Tidur (Landscape) sejak awal
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: 'a4'
+    });
+
+    const lebarKertasA4Pxl = doc.internal.pageSize.getWidth();
+    const rasioSkalaAmal = lebarKertasA4Pxl / 1300;
+    const namaBulan = months.find(m => m.value === bulan.value)?.label ?? '';
+    const tahunVal = tahun.value;
+    const bulanTahunFormatted = `${namaBulan} ${tahunVal}`;
+    const tanggalDipilih = tanggalCetak.value || new Date();
+
+    // Format tanggal ke Bahasa Indonesia (contoh: 21 Juni 2026)
+    const tglFormatted = tanggalDipilih.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+
+    // 3. Proses render halaman satu per satu menggunakan perulangan async/await
+    for (let indexKelompok = 0; indexKelompok < kelompokPegawai.length; indexKelompok++) {
+        const daftarPegawai = kelompokPegawai[indexKelompok];
+
+        // Jika ini bukan halaman pertama, tambahkan lembar halaman baru di jsPDF
+        if (indexKelompok > 0) {
+            doc.addPage();
+        }
+
+        // A. Susun header tanggal (1 - 31)
+        let headerTanggalHtml = '';
+        for (let d = 1; d <= daysInMonth.value; d++) {
+            headerTanggalHtml += `<th style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; background-color: #f1f5f9; font-size: 10px; width: 30px;">${d}</th>`;
+        }
+
+        // B. Susun baris data pegawai untuk halaman ini
+        let bodyPegawaiHtml = '';
+        daftarPegawai.forEach((pegawai, indexPegawai) => {
+            const nomorUrut = (indexKelompok * BARIS_PER_HALAMAN) + indexPegawai + 1;
+
+            let barisStatusHtml = '';
+            for (let d = 1; d <= daysInMonth.value; d++) {
+                const status = pegawai.absensi?.[d] ?? '-';
+                let inlineStyle = 'color: #64748b;';
+                if (status === 'hadir') inlineStyle = 'color: #16a34a; font-weight: bold;';
+                if (status === 'alpha') inlineStyle = 'color: #dc2626; font-weight: bold;';
+                if (['izin', 'sakit', 'cuti'].includes(status)) inlineStyle = 'color: #d97706; font-weight: bold;';
+
+                const inisialHuruf = status === 'hadir' ? 'H' : status === '-' ? '-' : status.charAt(0).toUpperCase();
+                barisStatusHtml += `<td style="border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; font-size: 10px; ${inlineStyle}">${inisialHuruf}</td>`;
+            }
+
+            bodyPegawaiHtml += `
+                <tr>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-size: 11px; color: #475569;">${nomorUrut}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px; font-size: 11px; font-weight: 500; color: #1e293b; width: 160px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${pegawai.nama}
+                    </td>
+                    ${barisStatusHtml}
+                    <td style="border: 1px solid #cbd5e1; padding: 6px; font-size: 10px; font-weight: bold; text-align: center; white-space: nowrap; background-color: #f8fafc; color: #334155;">
+                        ${formatSummary(pegawai.summary)}
+                    </td>
+                </tr>
+            `;
+        });
+
+        // C. Satukan menjadi tabel halaman ini
+        const tabelHtml = `
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-family: sans-serif; table-layout: fixed;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #94a3b8; padding: 6px; background-color: #f1f5f9; font-size: 11px; width: 35px;">No</th>
+                        <th style="border: 1px solid #94a3b8; padding: 6px; text-align: left; background-color: #f1f5f9; font-size: 11px; width: 160px;">Nama Pegawai</th>
+                        ${headerTanggalHtml}
+                        <th style="border: 1px solid #94a3b8; padding: 6px; background-color: #f1f5f9; font-size: 11px; width: 130px;">Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${bodyPegawaiHtml}
+                </tbody>
+            </table>
+        `;
+
+        // D. Masukkan tabel ke template master dari DB
+        let htmlHalaman = store.templateHtml
+            .replace('{{TABEL_ABSENSI}}', tabelHtml)
+            .replace('{{BULAN_TAHUN}}', bulanTahunFormatted)
+            .replace('{{TANGGAL_SEKARANG}}', tglFormatted); // Menggunakan tanggal pilihan use
+
+        // Pastikan htmlHalaman dibungkus ql-editor agar CSS Quill bekerja
+        htmlHalaman = `<div class="ql-editor">${htmlHalaman}</div>`;
+
+        // E. Buat kontainer temporer khusus untuk halaman yang sedang diproses saja
+        const halamanDiv = document.createElement('div');
+        halamanDiv.style.width = '1300px';
+        halamanDiv.style.padding = '20px 30px';
+        halamanDiv.style.boxSizing = 'border-box';
+        halamanDiv.style.backgroundColor = '#ffffff';
+
+        // KUNCI: Tambahkan CSS agar class Quill dibaca dan pewarisan style berjalan
+        halamanDiv.innerHTML = `
+    <style>
+        .ql-align-center { text-align: center !important; }
+        .ql-align-right { text-align: right !important; }
+        .ql-align-justify { text-align: justify !important; }
+        .ql-editor { 
+            font-family: Arial, sans-serif !important; 
+        }
+        .ql-size-small { font-size: 10px; }
+        .ql-size-large { font-size: 18px; }
+        .ql-size-huge { font-size: 24px; }
+        /* Memastikan tabel absensi juga mewarisi font dan gaya dari pembungkusnya */
+        table { font-family: inherit !important; }
+    </style>
+    <div class="ql-editor">
+        ${htmlHalaman}
+    </div>
+`;
+        document.body.appendChild(halamanDiv);
+        // F. RENDER LANGSUNG KE HALAMAN AKTIF jsPDF (Gunakan await agar runtut)
+        await doc.html(halamanDiv, {
+            x: 0,
+            y: 0,
+            html2canvas: {
+                scale: rasioSkalaAmal,
+                logging: false,
+                useCORS: true
+            },
+            autoPaging: false // Matikan auto paging bawaan karena kita mengontrol page secara manual
+        });
+
+        // Hapus elemen temporer dari DOM setelah berhasil di-foto oleh html2canvas
+        document.body.removeChild(halamanDiv);
+    }
+
+    // 4. Setelah semua halaman selesai dirender secara berurutan, unduh file PDF
+    doc.save(`Rekap_Absensi_${bulanTahunFormatted}.pdf`);
+    toast.add({ severity: 'success', summary: 'Selesai', detail: 'PDF rapi per halaman berhasil diunduh.', life: 3000 });
+};
+
+
 </script>
 
 
@@ -387,7 +518,7 @@ const enrichedData = computed(() => {
 
         <!-- HEADER -->
 
-        <div class="flex items-center justify-between mb-4">
+        <!-- <div class="flex items-center justify-between mb-4">
 
 
 
@@ -402,10 +533,20 @@ const enrichedData = computed(() => {
         </div>
 
 
+        <Button label="Cetak Laporan PDF" icon="pi pi-file-pdf" severity="danger" @click="cetakLaporan" /> -->
 
 
 
-        <div class="flex flex-col md:flex-row gap-3 mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+
+            <h1 class="text-2xl font-bold">
+                Management Absensi
+            </h1>
+
+
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-3 mb-4 mt-5">
 
 
 
@@ -435,7 +576,7 @@ const enrichedData = computed(() => {
                     placeholder="Pilih Status" :disabled="!selectedDate" showClear class="w-40">
                     <template #option="slotProps">
                         <span class="capitalize">{{ slotProps.option === '-' ? 'Belum Absen' : slotProps.option
-                            }}</span>
+                        }}</span>
                     </template>
                 </Select>
             </div>
@@ -501,7 +642,10 @@ const enrichedData = computed(() => {
 
         <div class="p-4 w-full overflow-hidden">
 
-
+        <p class="text-sm text-gray-500 mb-3">
+            Total: {{ enrichedData.length }} pegawai
+         
+        </p>
 
             <div class="overflow-auto  rounded-xl">
 
@@ -554,6 +698,21 @@ const enrichedData = computed(() => {
 
             </div>
 
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 m-6">
+
+         <div>
+
+         </div>
+
+            <div class="flex items-center gap-3">
+                <Calendar v-model="tanggalCetak" dateFormat="dd/mm/yy" showIcon placeholder="Pilih Tanggal Cetak"
+                    class="w-40" />
+
+                <Button label="Cetak PDF" icon="pi pi-file-pdf" @click="cetakLaporan" severity="info" />
+            </div>
         </div>
 
 

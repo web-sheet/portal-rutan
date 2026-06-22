@@ -1,11 +1,6 @@
 <template>
-  <Drawer 
-    :visible="visible" 
-    @update:visible="$emit('update:visible', $event)" 
-    position="left" 
-    class="w-72"
-    :transitionOptions="'animation-duration: 250ms; animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);'"
-  >
+  <Drawer :visible="visible" @update:visible="$emit('update:visible', $event)" position="left" class="w-72"
+    :transitionOptions="'animation-duration: 250ms; animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);'">
     <template #container>
       <div class="h-full flex flex-col bg-white">
         <div class="px-6 py-5 border-b border-slate-200">
@@ -40,13 +35,15 @@
             </RouterLink>
 
             <div v-else>
-              <div class="flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 font-medium hover:bg-slate-100 cursor-pointer transition-colors duration-150"
+              <div
+                class="flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 font-medium hover:bg-slate-100 cursor-pointer transition-colors duration-150"
                 @click="toggleMenu(menu.label)">
                 <div class="flex items-center gap-3">
                   <i :class="menu.icon"></i>
                   <span>{{ menu.label }}</span>
                 </div>
-                <i class="pi transition-transform duration-200" :class="openMenus[menu.label] ? 'pi-chevron-down rotate-180' : 'pi-chevron-right'" />
+                <i class="pi transition-transform duration-200"
+                  :class="openMenus[menu.label] ? 'pi-chevron-down rotate-180' : 'pi-chevron-right'" />
               </div>
 
               <div v-if="openMenus[menu.label]" class="ml-6 space-y-1 sub-menu-active animate-fade-in">
@@ -62,7 +59,8 @@
         </nav>
 
         <div class="p-4 border-t border-slate-200">
-          <Button label="Logout" icon="pi pi-sign-out" severity="danger" outlined class="w-full" @click="handleLogout" />
+          <Button label="Logout" icon="pi pi-sign-out" severity="danger" outlined class="w-full"
+            @click="handleLogout" />
         </div>
       </div>
     </template>
@@ -94,7 +92,8 @@
     <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
       <div v-for="menu in filteredMenus" :key="menu.label">
         <div v-if="menu.children">
-          <button class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100"
+          <button
+            class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100"
             @click="toggleMenu(menu.label)">
             <div class="flex items-center gap-3">
               <i :class="menu.icon"></i>
@@ -149,8 +148,9 @@ const menus = [
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
+    roles: ['admin', 'kasi', 'perlengkapan'], // Role yang bisa akses
     children: [
-      { label: 'Dashboard', to: '/dashboard', icon: 'pi pi-home' },
+      { label: 'Dashboard Perlengkapan', to: '/dashboard', icon: 'pi pi-home' },
       { label: 'Stok Barang', to: '/items', icon: 'pi pi-box' },
       { label: 'Permohonan Barang', to: '/request-management', icon: 'pi pi-inbox' },
     ]
@@ -158,7 +158,9 @@ const menus = [
   {
     label: 'Kepegawaian',
     icon: 'pi pi-users',
+    roles: ['admin', 'kasi', 'kepegawaian'],
     children: [
+      { label: 'Dashboard Kepegawaian', to: { name: 'absensi.dashboard' }, icon: 'pi pi-home' },
       { label: 'Data Pegawai', to: '/employee', icon: 'pi pi-user' },
       { label: 'Absensi', to: '/absensi', icon: 'pi pi-calendar' },
     ]
@@ -167,14 +169,15 @@ const menus = [
     label: 'Manajemen Petugas',
     icon: 'pi pi-cog',
     to: '/users-management',
-    isAdminOnly: true  
+    roles: ['admin'] // HANYA ADMIN
   },
-  { label: 'Profile', icon: 'pi pi-user', to: '/profile' },
+  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan'] },
 ]
 
 const filteredMenus = computed(() => {
-  return menus.filter(menu => !menu.isAdminOnly || auth.isAdmin)
-})
+  if (!auth.user) return [];
+  return menus.filter(menu => menu.roles.includes(auth.user.role));
+});
 
 const toggleMenu = (label) => {
   openMenus.value[label] = !openMenus.value[label]
@@ -190,8 +193,16 @@ const handleLogout = async () => {
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out forwards;
 }
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

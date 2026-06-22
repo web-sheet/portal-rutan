@@ -8,6 +8,7 @@ use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StockHistoryController;
+use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,13 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/items/bulk-delete', [ItemController::class, 'bulkDelete']);
 
     Route::post('/items/import-excel', [ItemController::class, 'importExcel']);
+
+
+
+    Route::get('/settings/template', [TemplateController::class, 'getTemplate']);
+    Route::post('/settings/template', [TemplateController::class, 'saveTemplate']);
+
+    Route::get('/absensi/dashboard-stats', [AbsensiController::class, 'getDashboardStats']);
 });
 
 

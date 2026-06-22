@@ -39,9 +39,15 @@
             <span class="font-semibold text-emerald-600">{{ data.final_approved_stock ?? '-' }}</span>
           </template>
         </Column>
-        <Column header="Status">
+        <!-- <Column header="Status">
           <template #body="{ data }">
             <Tag :value="data.status" :severity="statusColor(data.status)" class="uppercase font-bold text-[10px]" />
+          </template>
+        </Column> -->
+        <Column header="Status" style="min-width: 150px;">
+          <template #body="{ data }">
+            <Tag :value="getStatusLabel(data.status)" :severity="statusColor(data.status)"
+              class="text-[11px] font-semibold" />
           </template>
         </Column>
         <Column field="formatted_created_at" header="Tanggal" sortable />
@@ -168,11 +174,6 @@ const selectedPegawai = ref(null);
 
 const form = ref({ employee_name: "", division: "", item_id: null, stock_requested: 1 });
 
-// onMounted(async () => {
-//   await store.fetchItems();
-//   await store.fetchRequests();
-//   await fetchAllPegawai(); // Ambil seluruh data pegawai saat komponen siap
-// });
 
 
 onMounted(() => {
@@ -190,7 +191,7 @@ onMounted(() => {
 const fetchAllPegawai = async () => {
   try {
     const response = await api.get('/pegawai');
-       
+
     if (Array.isArray(response.data)) {
       pegawaiList.value = response.data;
     } else if (response.data && typeof response.data === 'object') {
@@ -229,9 +230,20 @@ const submit = async () => {
 };
 
 const statusColor = (status) => {
+  // Kuning untuk fase antrean (Pending)
   if (status === "pending") return "warn";
-  if (status === "approved") return "success";
+
+  // Biru untuk fase verifikasi internal (Kaur)
+  if (status === "approved_kaur") return "info";
+
+  // Hijau untuk fase final (Kasi/Selesai)
+  if (status === "approved_kasi" || status === "completed") return "success";
+
+  // Merah untuk penolakan
   if (status === "rejected") return "danger";
+
+  // Default jika status tidak dikenali
+  return "secondary";
 };
 
 const openTimeline = (data) => {
@@ -245,10 +257,22 @@ const CheckIcon = h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', 
 const XCircleIcon = h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', 'stroke-width': '2', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'm9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' })]);
 
 const getTimelineData = (req) => {
-  const data = [{ status: 'Permohonan Diajukan', date: req.formatted_requested_at || req.formatted_created_at, icon: PaperAirplaneIcon, color: 'bg-blue-500' }];
-  if (req.approved_kaur_at || req.formatted_approved_kaur_at) { data.push({ status: 'Disetujui Kaur', date: req.formatted_approved_kaur_at, by: req.formatted_approved_kaur_by, icon: CheckIcon, color: 'bg-amber-500' }); }
-  if (req.formatted_approved_kasi_at) { data.push({ status: 'Disetujui Kasi', date: req.formatted_approved_kasi_at, by: req.formatted_approved_kasi_by, icon: CheckIcon, color: 'bg-emerald-500' }); }
+  const data = [{ status: 'Menuggu Persetujuan Kaur', date: req.formatted_requested_at || req.formatted_created_at, icon: PaperAirplaneIcon, color: 'bg-blue-500' }];
+  if (req.approved_kaur_at || req.formatted_approved_kaur_at) { data.push({ status: 'Menunggu Persetujuan Kasi', date: req.formatted_approved_kaur_at, by: req.formatted_approved_kaur_by, icon: CheckIcon, color: 'bg-amber-500' }); }
+  if (req.formatted_approved_kasi_at) { data.push({ status: 'Selesai', date: req.formatted_approved_kasi_at, by: req.formatted_approved_kasi_by, icon: CheckIcon, color: 'bg-emerald-500' }); }
   if (req.formatted_rejected_at) { data.push({ status: 'Permohonan Ditolak', date: req.formatted_rejected_at, by: req.formatted_rejected_by, icon: XCircleIcon, color: 'bg-red-500' }); }
   return data;
+};
+
+/* Helper untuk label */
+const getStatusLabel = (status) => {
+  const labels = {
+    'pending': 'Menunggu Persetujuan Kaur',
+    'approved_kaur': 'Menunggu Persetujuan Kasi',
+    'approved_kasi': 'Disetujui Kasi',
+    'completed': 'Selesai',
+    'rejected': 'Ditolak'
+  };
+  return labels[status] || status;
 };
 </script>

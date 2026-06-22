@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Absensi;
 use App\Models\Pegawai;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AbsensiController extends Controller
 {
 
- 
+
 
     public function index()
     {
@@ -115,5 +117,60 @@ class AbsensiController extends Controller
     public function destroy(Absensi $absensi)
     {
         //
+    }
+
+
+
+    public function getDashboardStats(Request $request)
+    {
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+        $tanggalHariIni = date('Y-m-d');
+
+        // 1. Snapshot Cards
+        $totalPegawai = Pegawai::where('status', 'aktif')->count();
+        $hadirHariIni = Absensi::where('tanggal', $tanggalHariIni)
+            ->where('status', 'hadir')->count();
+        $izinSakitCuti = Absensi::where('tanggal', $tanggalHariIni)
+            ->whereIn('status', ['izin', 'sakit', 'cuti'])
+            ->count();
+
+        $persentase = $totalPegawai > 0 ? round(($hadirHariIni / $totalPegawai) * 100) : 0;
+
+        // 2. Tren Bulanan (Bar Chart)
+        $trenData = Absensi::select(
+            'tanggal',
+            DB::raw("SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir"),
+            DB::raw("SUM(CASE WHEN status != 'hadir' THEN 1 ELSE 0 END) as tidak_hadir")
+        )
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->groupBy('tanggal')
+            ->get();
+
+        // 3. Distribusi Status (Pie Chart)
+        $distribusi = Absensi::select('status', DB::raw('count(*) as total'))
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->groupBy('status')
+            ->get();
+
+        return response()->json([
+            'cards' => [
+                'persentase_kehadiran' => $persentase,
+                'jumlah_hadir' => $hadirHariIni,
+                'total_pegawai' => $totalPegawai,
+                'total_izin_sakit_cuti' => $izinSakitCuti
+            ],
+            'chart_tren' => [
+                'labels' => $trenData->pluck('tanggal')->map(fn($d) => Carbon::parse($d)->format('d')),
+                'hadir' => $trenData->pluck('hadir'),
+                'tidak_hadir' => $trenData->pluck('tidak_hadir')
+            ],
+            'distribusi_status' => [
+                'labels' => $distribusi->pluck('status')->map(fn($s) => ucfirst($s)),
+                'data' => $distribusi->pluck('total')
+            ]
+        ]);
     }
 }

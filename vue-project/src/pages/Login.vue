@@ -27,13 +27,28 @@ const submit = async () => {
   loading.submit = true
 
   try {
+    // 1. Jalankan proses login
     await auth.login(form.login, form.password)
-    router.push('/dashboard')
+
+    // 2. Cek role user setelah login berhasil
+    // Pastikan auth.user sudah terisi (biasanya tersimpan di state auth store)
+    const userRole = auth.user?.role;
+
+    // 3. Logika pengalihan (Routing)
+    if (userRole === 'kepegawaian') {
+      router.push('/absensi/dashboard')
+    } else if (['admin', 'kasi', 'karutan', 'perlengkapan'].includes(userRole)) {
+      router.push('/dashboard')
+    } else {
+      // Default jika role tidak ditemukan atau role lain
+      router.push('/dashboard')
+    }
+
   } catch (err) {
     toast.add({
       severity: 'error',
       summary: 'Login Gagal',
-      detail: 'Email atau password salah',
+      detail: 'Username atau password salah',
       life: 3000,
     })
   } finally {
@@ -45,10 +60,8 @@ const submit = async () => {
 <template>
   <Toast />
 
-  <div
-    class="min-h-screen flex items-center justify-center px-3"
-    style="background: linear-gradient(135deg, #f8fafc, #eef2ff)"
-  >
+  <div class="min-h-screen flex items-center justify-center px-3"
+    style="background: linear-gradient(135deg, #f8fafc, #eef2ff)">
     <!-- class disesuaikan ke Tailwind (shadow-md rounded-2xl) -->
     <Card style="width: 420px" class="shadow-md rounded-2xl overflow-hidden">
       <template #title>
@@ -63,39 +76,20 @@ const submit = async () => {
       <template #content>
         <!-- Menggunakan tag <form> untuk aksesibilitas (bisa submit pakai tombol Enter) -->
         <form @submit.prevent="submit" class="flex flex-col gap-4 mt-3">
-          
+
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-slate-700">Username / Email</label>
-            <InputText
-              v-model="form.login"
-             
-              placeholder="Masukkan email"
-              class="w-full"
-              required
-            />
+            <InputText v-model="form.login" placeholder="Masukkan email" class="w-full" required />
           </div>
 
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-slate-700">Password</label>
             <!-- Di PrimeVue 4, styling full-width dilempar ke inputStyle atau class -->
-            <Password
-              v-model="form.password"
-              placeholder="Masukkan password"
-              toggleMask
-              :feedback="false"
-              class="w-full"
-              inputClass="w-full"
-              required
-            />
+            <Password v-model="form.password" placeholder="Masukkan password" toggleMask :feedback="false"
+              class="w-full" inputClass="w-full" required />
           </div>
 
-          <Button
-            type="submit"
-            label="Login"
-            icon="pi pi-sign-in"
-            class="w-full mt-2"
-            :loading="loading.submit"
-          />
+          <Button type="submit" label="Login" icon="pi pi-sign-in" class="w-full mt-2" :loading="loading.submit" />
         </form>
       </template>
     </Card>

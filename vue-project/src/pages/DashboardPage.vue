@@ -77,13 +77,14 @@
       <Card>
         <template #title>Approval Queue</template>
         <template #content>
-          <DataTable :value="dashboard.approval_queue" responsiveLayout="scroll" stripedRows>
+          <DataTable :value="filteredApprovalQueue" class="cursor-pointer" @row-click="(e) => goToRequest(e.data.status)"  responsiveLayout="scroll" stripedRows>
             <Column field="employee_name" header="Pegawai" />
             <Column field="item_name" header="Barang" />
             <Column field="stock_requested" header="Qty" />
+
             <Column header="Status">
               <template #body="{ data }">
-                <Tag :value="data.status" severity="warn" />
+                <Tag :value="getStatusLabel(data.status)" :severity="statusColor(data.status)" />
               </template>
             </Column>
           </DataTable>
@@ -133,8 +134,19 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
+import { useAuthStore } from "@/stores/auth"; // Tambahkan ini
+
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+const auth = useAuthStore(); // Inisialisasi auth store
 
 import api from "@/api/axios";
+
+// Fungsi untuk mengarahkan ke halaman permohonan dengan status yang dibawa
+const goToRequest = (status) => {
+  router.push({ path: '/request-management', query: { status: status } });
+};
 
 /* STATE */
 const dashboard = ref({
@@ -191,4 +203,50 @@ const chartOptions = ref({
     y: { beginAtZero: true }
   }
 });
+
+
+// Buat computed untuk filter data
+const filteredApprovalQueue = computed(() => {
+  const queue = dashboard.value?.approval_queue || [];
+
+  // Cek apakah data masuk ke sini
+  console.log("Isi Antrean:", queue);
+  console.log("User Role:", auth.user?.role);
+  console.log("Is Perlengkapan:", auth.isPerlengkapan);
+
+  // Jika role perlengkapan, hanya tampilkan yang 'pending'
+  if (auth.isPerlengkapan) {
+    return queue.filter(item => item.status === 'pending');
+  }
+
+  if (auth.isKasi) {
+    return queue.filter(item => item.status === 'approved_kaur');
+  }
+
+  // Jika admin atau kasi, tampilkan semua atau sesuaikan kebutuhan
+  return queue;
+});
+
+/* Helper untuk label */
+const getStatusLabel = (status) => {
+  const labels = {
+    'pending': 'Menunggu Persetujuan Kaur',
+    'approved_kaur': 'Menunggu Persetujuan Kasi',
+    'approved_kasi': 'Disetujui Kasi',
+    'completed': 'Selesai',
+    'rejected': 'Ditolak'
+  };
+  return labels[status] || status;
+};
+
+const statusColor = (status) => {
+  const colors = {
+    'pending': 'warn',
+    'approved_kaur': 'info',
+    'approved_kasi': 'success',
+    'completed': 'success',
+    'rejected': 'danger'
+  };
+  return colors[status] || 'secondary';
+};
 </script>

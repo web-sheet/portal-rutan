@@ -136,9 +136,9 @@ const form = ref({ name: '', username: '', email: '', role: 'kaur', password: ''
 
 // Opsi pilihan Dropdown Jabatan Rutan
 const roleOptions = [
-  { label: 'Kaur (Kepala Urusan)', value: 'kaur' },
-  { label: 'Kasi (Kepala Seksi)', value: 'kasi' },
-  { label: 'Karutan (Kepala Rutan)', value: 'karutan' },
+  { label: 'Kaur Perlengkapan', value: 'perlengkapan' },
+  { label: 'Kaur Kepegawaian', value: 'kepegawaian' },
+  { label: 'Kasi Pengelolaan', value: 'kasi' },
   { label: 'Admin Aplikasi', value: 'admin' }
 ];
 
@@ -187,7 +187,8 @@ const handleSubmit = async () => {
 const getRoleSeverity = (role) => {
   switch (role) {
     case 'admin': return 'danger';    // Merah
-    case 'karutan': return 'warn';    // Oranye/Kuning
+    case 'kepegawaian': return 'warn';    // Oranye/Kuning
+    case 'perlengkapan': return 'warn';    // Oranye/Kuning
     case 'kasi': return 'info';       // Biru
     default: return 'success';        // Hijau (kaur)
   }
