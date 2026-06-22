@@ -12,22 +12,21 @@ import PublicLanding from "@/pages/PublicLanding.vue";
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // PUBLIC LANDING PAGE
+    
     {
       path: "/",
       name: "home",
       component: PublicLanding,
       meta: { public: true },
     },
-
-    // LOGIN
+ 
     {
       path: "/login",
       component: Login,
       meta: { public: true },
     },
 
-    // PUBLIC FORM
+     
     {
       path: "/requests",
       name: "requests",
