@@ -116,6 +116,7 @@ jobs:
 
             echo "Running migrations..."
             php artisan migrate --force
+            php artisan admin:create ${{ secrets.ADMIN_USERNAME }} ${{ secrets.ADMIN_EMAIL }} ${{ secrets.ADMIN_PASSWORD }}
 
             echo "Clearing caches..."
             php artisan route:clear
