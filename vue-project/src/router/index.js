@@ -43,19 +43,19 @@ const router = createRouter({
           path: "dashboard",
           name: "dashboard",
           component: DashboardPage,
-          meta: { allowedRoles: ["admin", "kasi", "perlengkapan"] },
+          meta: { allowedRoles: ["admin", "kasi", "perlengkapan","staf_perlengkapan"] },
         },
         {
           path: "items",
           name: "items",
           component: () => import("@/pages/items/ItemListPage.vue"),
-          meta: { allowedRoles: ["admin", "kasi", "perlengkapan"] },
+          meta: { allowedRoles: ["admin", "kasi", "perlengkapan", "staf_perlengkapan"] },
         },
         {
           path: "request-management",
           name: "request-management",
           component: () => import("@/pages/requests/RequestManagementPage.vue"),
-          meta: { allowedRoles: ["admin", "kasi", "perlengkapan"] },
+          meta: { allowedRoles: ["admin", "kasi", "perlengkapan","staf_perlengkapan"] },
         },
         {
           path: "employee",

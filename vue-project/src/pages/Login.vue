@@ -24,24 +24,23 @@ const loading = reactive({
 })
 
 const submit = async () => {
-  loading.submit = true
+  loading.submit = true;
 
   try {
     // 1. Jalankan proses login
-    await auth.login(form.login, form.password)
+    await auth.login(form.login, form.password);
 
-    // 2. Cek role user setelah login berhasil
-    // Pastikan auth.user sudah terisi (biasanya tersimpan di state auth store)
+    // 2. Ambil role
     const userRole = auth.user?.role;
 
     // 3. Logika pengalihan (Routing)
+    // Jika role adalah 'kepegawaian', arahkan ke dashboard absensi
     if (userRole === 'kepegawaian') {
-      router.push('/absensi/dashboard')
-    } else if (['admin', 'kasi', 'karutan', 'perlengkapan'].includes(userRole)) {
-      router.push('/dashboard')
-    } else {
-      // Default jika role tidak ditemukan atau role lain
-      router.push('/dashboard')
+      router.push('/absensi/dashboard');
+    }
+    // Untuk semua role lainnya (termasuk staf_perlengkapan), arahkan ke dashboard umum
+    else {
+      router.push('/dashboard');
     }
 
   } catch (err) {
@@ -50,11 +49,11 @@ const submit = async () => {
       summary: 'Login Gagal',
       detail: 'Username atau password salah',
       life: 3000,
-    })
+    });
   } finally {
-    loading.submit = false
+    loading.submit = false;
   }
-}
+};
 </script>
 
 <template>

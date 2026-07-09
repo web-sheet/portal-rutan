@@ -30,14 +30,18 @@ export const useRequestStore = defineStore("request", {
         this.loading = false;
       }
     },
- 
+
     async approveKaur(id, qty) {
       return await api.post(`/requests/${id}/approve-kaur`, {
         stock_requested: qty,
       });
     },
 
-  
+    async approveStaf(id, qty) {
+      return await api.post(`/requests/${id}/approve-staf`, {
+        stock_requested: qty,
+      });
+    },
 
     async approveKasi(id, qty) {
       return await api.post(`/requests/${id}/approve-kasi`, {
@@ -51,6 +55,23 @@ export const useRequestStore = defineStore("request", {
 
     async deleteRequest(id) {
       await api.delete(`/requests/${id}`);
+    },
+
+    // Di Pinia Store
+    async rejectBulk(ids) {
+      await api.post("/requests/reject-bulk", { ids });
+    },
+
+    // Di dalam store.js
+    async approveBulk(payload) {
+      try {
+        // Panggil endpoint yang sudah dibuat di routes/api.php
+        const response = await api.post("/requests/approve-bulk", payload);
+        return response.data;
+      } catch (error) {
+        console.error("Error saat approval bulk:", error);
+        throw error;
+      }
     },
   },
 });

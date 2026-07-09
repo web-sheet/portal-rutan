@@ -18,7 +18,6 @@ class ItemRequest extends Model
         'stock_requested',
         'status',
 
-        // 🔥 AUDIT
         'requested_at',
 
         'approved_kaur_at',
@@ -33,16 +32,20 @@ class ItemRequest extends Model
         'completed_at',
         'adjusted_stock_requested',
         'final_approved_stock',
+
+        // Tambahkan ini:
+        'confirmed_by_staff_at',
+        'confirmed_by_staff_by',
     ];
 
     protected $casts = [
         'status' => RequestStatus::class,
 
-        // 🔥 otomatis jadi Carbon date
-        'requested_at' => 'datetime',
-
+       'requested_at' => 'datetime',
         'approved_kaur_at' => 'datetime',
         'approved_kasi_at' => 'datetime',
+
+        'confirmed_by_staff_at' => 'datetime',
 
         'rejected_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -62,6 +65,8 @@ class ItemRequest extends Model
         'formatted_completed_at',
         'formatted_rejected_at',
         'formatted_created_at',
+        // Tambahkan ini:
+        'formatted_confirmed_by_staff_at',
     ];
 
 
@@ -110,6 +115,13 @@ class ItemRequest extends Model
     {
         return $this->created_at
             ? Carbon::parse($this->created_at)->translatedFormat('d F Y')
+            : null;
+    }
+
+    public function getFormattedConfirmedByStaffAtAttribute()
+    {
+        return $this->confirmed_by_staff_at
+            ? Carbon::parse($this->confirmed_by_staff_at)->translatedFormat('d F Y H:i')
             : null;
     }
 }

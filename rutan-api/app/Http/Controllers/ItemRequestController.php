@@ -7,42 +7,57 @@ use App\Models\Item;
 use App\Models\ItemRequest;
 use App\Services\ItemRequestService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // Tambahkan ini untuk database transaction
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class ItemRequestController extends Controller
 {
-    // PUBLIC: submit request
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Menggunakan Validator manual untuk menangkap error
+        $validator = Validator::make($request->all(), [
             'employee_name' => 'required',
-            'division' => 'required',
-            'item_id' => 'required|exists:items,id',
-            'stock_requested' => 'required|integer|min:1',
+            'division'      => 'required',
+            'items'         => 'required|array|min:1',
+            'items.*.item_id' => 'required|exists:items,id',
+            'items.*.qty'   => 'required|integer|min:1',
         ]);
 
-        $item = Item::findOrFail($validated['item_id']);
-
-        // optional: cek stok cukup
-        if ($item->stock < $validated['stock_requested']) {
-            return response()->json([
-                'message' => 'Stok tidak cukup'
-            ], 422);
+        if ($validator->fails()) {
+            // LOG INI AKAN MEMBERI TAHU KITA PERSIS FIELD MANA YANG SALAH
+            Log::error('Validasi Gagal:', $validator->errors()->toArray());
+            return response()->json(['message' => 'Validasi gagal', 'errors' => $validator->errors()], 422);
         }
 
-        $data = ItemRequest::create([
-            'employee_name' => $validated['employee_name'],
-            'division' => $validated['division'],
-            'item_id' => $item->id,
-            'item_name' => $item->name,
-            'category' => $item->category,
-            'stock_requested' => $validated['stock_requested'],
-            'status' => 'pending',
-            'requested_at' => now(),
-        ]);
+        try {
+            DB::transaction(function () use ($request) {
+                foreach ($request->items as $itemData) {
+                    $item = Item::findOrFail($itemData['item_id']);
 
-        return response()->json($data);
+                    if ($item->stock < $itemData['qty']) {
+                        throw new \Exception("Stok {$item->name} tidak cukup");
+                    }
+
+                    ItemRequest::create([
+                        'employee_name'    => $request->employee_name,
+                        'division'         => $request->division,
+                        'item_id'          => $item->id,
+                        'item_name'        => $item->name,
+                        'category'         => $item->category,
+                        'stock_requested'  => $itemData['qty'],
+                        'status'           => 'pending',
+                        'requested_at'     => now(),
+                    ]);
+                }
+            });
+
+            return response()->json(['message' => 'Berhasil mengajukan permintaan'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
-
 
 
     public function byEmployee($name)
@@ -76,17 +91,20 @@ class ItemRequestController extends Controller
         return response()->json(['message' => 'Approved Kaur']);
     }
 
- 
-    public function approveKasi(Request $request, $id)
+
+    public function approveStaf(Request $request, $id)
     {
+        // 1. Ambil data permohonan
         $itemRequest = ItemRequest::findOrFail($id);
 
+        // 2. Ambil quantity dari request
         $qty = $request->input('stock_requested');
 
-        $this->service->approveKasi($itemRequest, $qty);
+        // 3. Panggil method di service (Anda harus membuat/mengupdate method ini di Service class)
+        $this->service->approveStaf($itemRequest, $qty);
 
         return response()->json([
-            'message' => 'Approved Kasi'
+            'message' => 'Permohonan berhasil dikonfirmasi oleh Staf Perlengkapan'
         ]);
     }
 
@@ -97,6 +115,21 @@ class ItemRequestController extends Controller
         $this->service->reject($request);
 
         return response()->json(['message' => 'Rejected']);
+    }
+
+    // Backend Laravel
+    public function rejectBulk(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+
+        // Update semua status menjadi 'rejected'
+        ItemRequest::whereIn('id', $request->ids)->update([
+            'status' => 'rejected',
+            'rejected_at' => now(),
+            'rejected_by' => auth()->user()->name
+        ]);
+
+        return response()->json(['message' => 'Success']);
     }
 
 
@@ -116,5 +149,24 @@ class ItemRequestController extends Controller
         return response()->json([
             'message' => 'Request berhasil dihapus'
         ]);
+    }
+
+    public function approveBulk(Request $request)
+    {
+        $type = $request->input('type'); // 'perlengkapan' atau 'staf_perlengkapan'
+
+        foreach ($request->items as $itemData) {
+            $req = ItemRequest::findOrFail($itemData['id']);
+
+            if ($type === 'perlengkapan') {
+                // Panggil logic service yang sudah Anda buat untuk Kaur
+                $this->service->approveKaur($req, $itemData['qty']);
+            } elseif ($type === 'staf_perlengkapan') {
+                // Panggil logic service yang sudah Anda buat untuk Staf
+                $this->service->approveStaf($req, $itemData['qty']);
+            }
+        }
+
+        return response()->json(['message' => 'Berhasil']);
     }
 }

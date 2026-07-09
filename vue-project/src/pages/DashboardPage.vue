@@ -26,7 +26,7 @@
         <template #content>
           <div class="flex justify-between items-center">
             <div>
-              <p class="text-gray-500 text-sm">Total Request</p>
+              <p class="text-gray-500 text-sm">Total Permohonan</p>
               <h2 class="text-3xl font-bold mt-2">{{ dashboard.cards.total_requests }}</h2>
             </div>
             <i class="pi pi-send text-4xl text-green-500"></i>
@@ -46,7 +46,9 @@
         </template>
       </Card>
 
-      <Card>
+      <Card
+        class="cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-red-200 border border-transparent"
+        @click="goToStockFilter('low')">
         <template #content>
           <div class="flex justify-between items-center">
             <div>
@@ -64,9 +66,10 @@
       <Card>
         <template #title>Permohonan Bulanan</template>
         <template #content>
-          <div class="h-72 w-full">
+          <div class="h-96 w-full">
             <!-- Pastikan data ada sebelum render Chart -->
-            <Chart v-if="chartData.datasets[0].data.length > 0" type="bar" :data="chartData" :options="chartOptions" />
+            <Chart v-if="chartData.datasets[0].data.length > 0" type="bar" :data="chartData" :options="chartOptions"
+              style="height: 80%; width: 60%;" />
             <div v-else class="flex items-center justify-center h-full text-gray-400">
               Memuat grafik...
             </div>
@@ -75,12 +78,18 @@
       </Card>
 
       <Card>
-        <template #title>Approval Queue</template>
+        <template #title>Menunggu Persetujuan</template>
         <template #content>
-          <DataTable :value="filteredApprovalQueue" class="cursor-pointer" @row-click="(e) => goToRequest(e.data.status)"  responsiveLayout="scroll" stripedRows>
+          <DataTable :value="filteredApprovalQueue" class="cursor-pointer"
+            @row-click="(e) => goToRequest(e.data.status)" responsiveLayout="scroll" stripedRows>
+
             <Column field="employee_name" header="Pegawai" />
-            <Column field="item_name" header="Barang" />
-            <Column field="stock_requested" header="Qty" />
+
+            <Column header="Total Jenis">
+              <template #body="{ data }">
+                <span class="">{{ data.items.length }}</span> Jenis
+              </template>
+            </Column>
 
             <Column header="Status">
               <template #body="{ data }">
@@ -94,8 +103,15 @@
 
     <!-- BOTTOM SECTION -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <Card>
-        <template #title>Stok Menipis</template>
+      <Card
+        class="cursor-pointer transition-transform hover:scale-[1.01] hover:shadow-lg border border-transparent hover:border-red-200"
+        @click="goToStockFilter('low')">
+        <template #title>
+          <div class="flex items-center justify-between">
+            <span>Stok Menipis</span>
+            <i class="pi pi-arrow-right text-sm text-red-400"></i>
+          </div>
+        </template>
         <template #content>
           <DataTable :value="dashboard.low_stock_items" responsiveLayout="scroll" stripedRows>
             <Column field="name" header="Barang" />
@@ -110,7 +126,7 @@
       </Card>
 
       <Card>
-        <template #title>Top Requested Items</template>
+        <template #title>Barang Yang Sering Diminta</template>
         <template #content>
           <div v-for="item in dashboard.top_requested_items" :key="item.item_name" class="mb-4">
             <div class="flex justify-between mb-1">
@@ -136,12 +152,26 @@ import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
 import { useAuthStore } from "@/stores/auth"; // Tambahkan ini
 
+import api from "@/api/axios";
+
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
+
+
+
+
+const goToStockFilter = (filterValue) => {
+  // Arahkan ke halaman daftar barang dengan query parameter
+  router.push({
+    path: '/items', // Sesuaikan dengan route tujuan Anda
+    query: { stock: filterValue }
+  });
+};
+
 const auth = useAuthStore(); // Inisialisasi auth store
 
-import api from "@/api/axios";
+
 
 // Fungsi untuk mengarahkan ke halaman permohonan dengan status yang dibawa
 const goToRequest = (status) => {
@@ -209,29 +239,39 @@ const chartOptions = ref({
 const filteredApprovalQueue = computed(() => {
   const queue = dashboard.value?.approval_queue || [];
 
-  // Cek apakah data masuk ke sini
-  console.log("Isi Antrean:", queue);
-  console.log("User Role:", auth.user?.role);
-  console.log("Is Perlengkapan:", auth.isPerlengkapan);
-
-  // Jika role perlengkapan, hanya tampilkan yang 'pending'
+  // 1. Filter berdasarkan role
+  let filtered = [];
   if (auth.isPerlengkapan) {
-    return queue.filter(item => item.status === 'pending');
+    filtered = queue.filter(item => item.status === 'pending');
+  } else if (auth.isStafPerlengkapan) {
+    filtered = queue.filter(item => item.status === 'approved_kaur');
+  } else {
+    filtered = queue;
   }
 
-  if (auth.isKasi) {
-    return queue.filter(item => item.status === 'approved_kaur');
-  }
+  // 2. Grouping
+  const groups = {};
+  filtered.forEach(item => {
+    // Kita buat key unik berdasarkan gabungan nama pegawai dan waktu request
+    const key = `${item.employee_name}_${item.created_at}`;
+    if (!groups[key]) {
+      groups[key] = {
+        employee_name: item.employee_name,
+        status: item.status,
+        items: [] // Simpan daftar barang dalam satu grup
+      };
+    }
+    groups[key].items.push(item);
+  });
 
-  // Jika admin atau kasi, tampilkan semua atau sesuaikan kebutuhan
-  return queue;
+  return Object.values(groups);
 });
 
 /* Helper untuk label */
 const getStatusLabel = (status) => {
   const labels = {
     'pending': 'Menunggu Persetujuan Kaur',
-    'approved_kaur': 'Menunggu Persetujuan Kasi',
+    'approved_kaur': 'Barang Sedang Disiapkan',
     'approved_kasi': 'Disetujui Kasi',
     'completed': 'Selesai',
     'rejected': 'Ditolak'

@@ -24,43 +24,48 @@ class ItemRequestService
 
   
 
-    public function approveKasi(ItemRequest $request, int $qty)
-    {
-        $item = Item::find($request->item_id);
+public function approveStaf(ItemRequest $request, int $qty)
+{
+    $item = Item::find($request->item_id);
 
-        if ($item->stock < $qty) {
-            throw new \Exception("Stok tidak cukup");
-        }
-
-        $stockBefore = $item->stock;
-
-        $item->decrement('stock', $qty);
-
-        $stockAfter = $item->fresh()->stock;
-
-        StockHistory::create([
-            'item_id' => $item->id,
-            'item_request_id' => $request->id,
-            'item_name' => $item->name,
-            'quantity' => $qty,
-            'type' => 'OUT',
-            'stock_before' => $stockBefore,
-            'stock_after' => $stockAfter,
-            'action_by' => auth()->user()->name ?? 'system',
-        ]);
-
-        $request->update([
-            'final_approved_stock' => $qty,
-
-            'status' => RequestStatus::COMPLETED,
-
-            'approved_kasi_at' => now(),
-            'approved_kasi_by' => auth()->user()->name ?? 'system',
-
-            'completed_at' => now(),
-        ]);
+    // 1. Validasi Stok
+    if ($item->stock < $qty) {
+        throw new \Exception("Stok tidak cukup");
     }
 
+    $stockBefore = $item->stock;
+
+    // 2. Kurangi Stok
+    $item->decrement('stock', $qty);
+
+    $stockAfter = $item->fresh()->stock;
+
+    // 3. Catat Riwayat Stok
+    StockHistory::create([
+        'item_id' => $item->id,
+        'item_request_id' => $request->id,
+        'item_name' => $item->name,
+        'quantity' => $qty,
+        'type' => 'OUT',
+        'stock_before' => $stockBefore,
+        'stock_after' => $stockAfter,
+        'action_by' => auth()->user()->name ?? 'system',
+    ]);
+
+    // 4. Update Status Permohonan
+    // Kita set status ke 'confirmed_by_staff'
+    $request->update([
+        'final_approved_stock' => $qty,
+       'status' => RequestStatus::CONFIRMED_BY_STAFF,
+        
+        // Sesuaikan kolom berikut dengan nama kolom di database Anda
+        'confirmed_by_staff_at' => now(),
+        'confirmed_by_staff_by' => auth()->user()->name ?? 'system',
+        
+        // Karena ini langkah terakhir, kita set juga completed_at
+        'completed_at' => now(), 
+    ]);
+}
     public function reject(ItemRequest $request)
     {
         $request->update([

@@ -26,6 +26,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/items/{id}', [ItemController::class, 'destroy']);
 
     Route::post('/requests/{id}/approve-kaur', [ItemRequestController::class, 'approveKaur']);
+    Route::post('/requests/{id}/approve-staf', [ItemRequestController::class, 'approveStaf']);
     Route::post('/requests/{id}/approve-kasi', [ItemRequestController::class, 'approveKasi']);
     Route::post('/requests/{id}/reject', [ItemRequestController::class, 'reject']);
 
@@ -63,6 +64,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/settings/template', [TemplateController::class, 'saveTemplate']);
 
     Route::get('/absensi/dashboard-stats', [AbsensiController::class, 'getDashboardStats']);
+
+
+    // Pastikan route ini berada di dalam grup yang sesuai jika Anda menggunakan middleware (misal: auth:sanctum)
+    Route::post('/requests/approve-bulk', [ItemRequestController::class, 'approveBulk']);
+    // Pastikan route ini berada di dalam grup yang sesuai jika Anda menggunakan middleware (misal: auth:sanctum)
+    Route::post('/requests/approve-bulk', [ItemRequestController::class, 'approveBulk']);
+
+    Route::post('/requests/reject-bulk', [ItemRequestController::class, 'rejectBulk']);
 });
 
 

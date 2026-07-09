@@ -148,7 +148,7 @@ const menus = [
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
-    roles: ['admin', 'kasi', 'perlengkapan'], // Role yang bisa akses
+    roles: ['admin', 'kasi', 'perlengkapan','staf_perlengkapan'], // Role yang bisa akses
     children: [
       { label: 'Dashboard Perlengkapan', to: '/dashboard', icon: 'pi pi-home' },
       { label: 'Stok Barang', to: '/items', icon: 'pi pi-box' },
@@ -171,7 +171,7 @@ const menus = [
     to: '/users-management',
     roles: ['admin'] // HANYA ADMIN
   },
-  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan'] },
+  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan','staf_perlengkapan'] },
 ]
 
 const filteredMenus = computed(() => {

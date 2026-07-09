@@ -7,11 +7,7 @@
     <div
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-200 pb-4">
       <div class="flex items-center gap-3">
-        <!-- <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-8 h-8 text-slate-700 shrink-0">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-        </svg> -->
+
         <div>
           <h2 class="text-2xl font-bold text-slate-900">Stok Barang</h2>
           <p class="text-sm text-slate-500">Manajemen data barang logistik gudang rutan</p>
@@ -49,20 +45,27 @@
       </div>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-3 mb-4">
-      <span class="p-input-icon-left w-full">
-        <i class="pi pi-search" />
-        <InputText v-model="search" placeholder="Cari barang..." class="w-full" />
-      </span>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-6 items-center">
+      <div class="md:col-span-6 w-full">
+        <span class="p-input-icon-left w-full h-10">
 
-      <Select v-model="categoryFilter" :options="categories" placeholder="Filter Kategori" showClear
-        class="w-full md:w-60" />
+          <InputText v-model="search" placeholder="Cari barang..." class="w-full h-full" />
+        </span>
+      </div>
 
-      <Select v-model="stockFilter" :options="[
-        { label: 'Stok Rendah (≤5)', value: 'low' },
-        { label: 'Stok Sedang (6-20)', value: 'medium' },
-        { label: 'Stok Tinggi (>20)', value: 'high' }
-      ]" optionLabel="label" optionValue="value" placeholder="Filter Stock" showClear class="w-full md:w-60" />
+      <div class="md:col-span-3 w-full h-10">
+        <Select v-model="categoryFilter" :options="categories" placeholder="Filter Kategori" showClear
+          class="w-full h-full flex items-center" />
+      </div>
+
+      <div class="md:col-span-3 w-full h-10">
+        <Select v-model="stockFilter" :options="[
+          { label: 'Stok Rendah (≤5)', value: 'low' },
+          { label: 'Stok Sedang (6-20)', value: 'medium' },
+          { label: 'Stok Tinggi (>20)', value: 'high' }
+        ]" optionLabel="label" optionValue="value" placeholder="Filter Stock" showClear
+          class="w-full h-full flex items-center" />
+      </div>
     </div>
 
     <p class="text-sm text-gray-500 mb-3">
@@ -96,40 +99,61 @@
       </DataTable>
     </Card>
 
-    <Dialog v-model:visible="dialog" :header="editMode ? 'Edit Item' : 'Tambah Item'" modal :style="{ width: '450px' }"
-      class="p-fluid">
-      <div class="grid gap-3">
-        <div class="field">
-          <label>Nama Barang</label>
-          <InputText v-model="form.name" />
+    <Dialog v-model:visible="dialog" :header="editMode ? '✏️ Edit Data Barang' : '➕ Tambah Barang Baru'" modal
+      :style="{ width: '500px' }" class="p-fluid">
+      <div class="p-2 space-y-5">
+
+        <div class="grid grid-cols-1 gap-5">
+          <div class="field flex flex-col gap-2">
+            <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Nama Barang</label>
+            <InputText v-model="form.name" placeholder="Masukkan nama barang" class="h-11" />
+          </div>
+
+          <div class="field flex flex-col gap-2">
+            <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Kategori</label>
+            <InputText v-model="form.category" placeholder="Masukkan kategori" class="h-11" />
+          </div>
         </div>
-        <div class="field">
-          <label>Kategori</label>
-          <InputText v-model="form.category" />
-        </div>
-        <div class="field">
-          <label>Stock</label>
-          <InputNumber v-model="form.stock" class="w-full" />
-        </div>
-        <div class="field">
-          <label>Kondisi</label>
-          <InputText v-model="form.description" />
+
+        <div class="flex gap-4 w-full">
+
+          <div class="w-1/ flex flex-col gap-1.5">
+            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+              Stok
+            </label>
+            <InputNumber v-model="form.stock" showButtons :min="0" class="h-[42px] [&_.p-inputtext]:h-full" />
+          </div>
+
+          <div class="flex-1 flex flex-col gap-1.5">
+            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+              Kondisi Barang
+            </label>
+            <InputText v-model="form.description" placeholder="Contoh: Baik" class="h-[42px] w-full" />
+          </div>
+
         </div>
       </div>
 
       <template #footer>
-        <Button label="Batal" icon="pi pi-times" text severity="secondary" @click="dialog = false" />
-        <Button label="Simpan" icon="pi pi-check" severity="success" @click="save" />
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <Button label="Batal" icon="pi pi-times" text severity="secondary" @click="dialog = false"
+            class="px-4 py-2" />
+          <Button label="Simpan Barang" icon="pi pi-check" severity="success" @click="save" class="px-4 py-2" />
+        </div>
       </template>
     </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useItemStore } from "@/stores/item";
 import { useToast } from "primevue/usetoast";
 import * as XLSX from "xlsx"; // Import engine baca Excel
+import { useRoute, useRouter } from "vue-router"; // 1. Import router
+
+const route = useRoute();
+const router = useRouter();
 
 const store = useItemStore();
 const toast = useToast();
@@ -139,13 +163,24 @@ const dialog = ref(false);
 const editMode = ref(false);
 const selectedId = ref(null);
 const search = ref("");
-const categoryFilter = ref(null);
-const stockFilter = ref(null);
+// 2. Ambil nilai awal dari URL, jika kosong beri null
+const stockFilter = ref(route.query.stock || null);
+const categoryFilter = ref(route.query.category || null);
 
 const selectedItems = ref([]);
 const form = ref({ name: "", category: "", stock: 0, description: "" });
 
 const categories = computed(() => [...new Set(store.items.map(i => i.category))]);
+
+watch([stockFilter, categoryFilter], ([newStock, newCategory]) => {
+  router.replace({
+    query: {
+      ...route.query,
+      stock: newStock || undefined, // undefined akan menghapus param jika kosong
+      category: newCategory || undefined
+    }
+  });
+});
 
 const filteredItems = computed(() => {
   return store.items.filter(item => {
