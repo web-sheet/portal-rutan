@@ -28,38 +28,7 @@
     </div>
 
     <div class="card bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
-      <!-- <DataTable :value="store.requests" :loading="store.loading" paginator :rows="10" stripedRows
-        responsiveLayout="scroll" class="p-datatable-sm text-sm">
-        <Column field="employee_name" header="Nama Pegawai" sortable class="font-medium text-slate-800" />
-        <Column field="division" header="Jabatan" sortable />
-        <Column field="item_name" header="Barang" sortable />
-        <Column field="stock_requested" header="Jumlah" class="text-center" headerClass="text-center" />
-        <Column field="final_approved_stock" header="Disetujui" class="text-center" headerClass="text-center">
-          <template #body="{ data }">
-            <span class="font-semibold text-emerald-600">{{ data.final_approved_stock ?? '-' }}</span>
-          </template>
-        </Column>
 
-        <Column header="Status" style="min-width: 150px;">
-          <template #body="{ data }">
-            <Tag :value="getStatusLabel(data.status)" :severity="statusColor(data.status)"
-              class="text-[11px] font-semibold" />
-          </template>
-        </Column>
-        <Column field="formatted_created_at" header="Tanggal" sortable />
-        <Column header="Detail" class="text-center" headerClass="text-center">
-          <template #body="{ data }">
-            <Button severity="info" text rounded v-tooltip.top="'Lihat Timeline'" @click="openTimeline(data)">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
-            </Button>
-          </template>
-        </Column>
-      </DataTable> -->
 
       <DataTable :value="groupedRequests" :loading="store.loading" paginator :rows="10" stripedRows
         responsiveLayout="scroll" class="p-datatable-sm text-sm">
@@ -96,14 +65,13 @@
     </div>
 
 
-    <Dialog v-model:visible="dialog"   modal :style="{ width: '500px' }"
-      class="p-fluid">
+    <Dialog v-model:visible="dialog" modal :style="{ width: '500px' }" class="p-fluid">
 
       <template #header>
         <div class="w-full text-center font-semibold text-lg">
-           Ajukan Permintaan Barang
+          Ajukan Permintaan Barang
         </div>
-    </template>
+      </template>
       <div class="flex flex-col gap-4 mt-2">
         <!-- Header: Pegawai & Jabatan tetap di atas -->
         <div class="grid grid-cols-1 gap-4 pb-4 ">
@@ -114,6 +82,24 @@
           <div class="flex flex-col gap-1">
             <label class="text-sm font-semibold">Jabatan</label>
             <InputText :value="selectedPegawai?.jabatan" readonly class="bg-slate-50" />
+          </div>
+        </div>
+
+
+        <!-- Tambahan: AREA TANDA TANGAN -->
+        <div class="field mb-4">
+          <label class="font-medium block mb-2">Tanda Tangan Pemohon</label>
+
+          <!-- Wadah Canvas -->
+          <div
+            class="border border-slate-300 rounded-lg overflow-hidden bg-slate-50 relative flex justify-center items-center">
+            <canvas ref="signatureCanvas" class="w-full h-[200px] block bg-white cursor-crosshair"></canvas>
+          </div>
+
+          <!-- Tombol Aksi Tanda Tangan -->
+          <div class="flex justify-end mt-2">
+            <Button type="button" label="Hapus Tanda Tangan" icon="pi pi-trash" severity="danger" text size="small"
+              @click="clearSignature" />
           </div>
         </div>
 
@@ -164,7 +150,7 @@
     <Dialog v-model:visible="timelineDialog" modal :breakpoints="{ '641px': '95vw' }" :style="{ width: '480px' }">
       <template #header>
         <div class="w-full text-center font-semibold text-lg">
-         Detail Permohonan
+          Detail Permohonan
         </div>
       </template>
       <div v-if="selectedRequest" class="mt-2">
@@ -221,7 +207,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, h } from "vue";
+import { ref, onMounted, watch, computed, h, nextTick } from "vue";
 import { useRequestStore } from "@/stores/request";
 import api from "@/api/axios";
 
@@ -236,6 +222,7 @@ import Select from 'primevue/select'; // Menggunakan Select untuk Barang & Pegaw
 import Timeline from 'primevue/timeline';
 import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast";
+import SignaturePad from 'signature_pad'; // 1. Import library-nya
 
 const timelineDialog = ref(false);
 const selectedRequest = ref(null);
@@ -249,7 +236,12 @@ const isLoading = ref(false); // Tambahkan ini di dekat definisi cart atau selec
 const pegawaiList = ref([]);
 const selectedPegawai = ref(null);
 
-const form = ref({ employee_name: "", division: "", item_id: null, stock_requested: 1 });
+// Referensi Elemen Canvas
+const signatureCanvas = ref(null);
+let isDrawing = false;
+let ctx = null;
+
+const form = ref({ employee_name: "", division: "", signature: '', item_id: null, stock_requested: 1 });
 
 // Menghitung barang yang tersedia (dikurangi barang yang sudah ada di cart)
 const availableItems = computed(() => {
@@ -292,10 +284,11 @@ const fetchAllPegawai = async () => {
   }
 };
 // MENGINTIP PILIHAN PEGAWAI: Set Nama dan Jabatan otomatis ke form
-watch(selectedPegawai, (newValue) => {
+watch([selectedPegawai,], (newValue) => {
   if (newValue) {
     form.value.employee_name = newValue.nama;
     form.value.division = newValue.jabatan;
+
   } else {
     form.value.employee_name = "";
     form.value.division = "";
@@ -303,9 +296,63 @@ watch(selectedPegawai, (newValue) => {
 });
 
 watch(selectedItem, (value) => { form.value.item_id = value?.id ?? null; });
+
+// Referensi Canvas & Instance Signature Pad
+
+let signaturePadInstance = null; // Tempat menyimpan engine signature pad
+
+// 2. Fungsi Inisialisasi Baru
+const initSignaturePad = () => {
+  const canvas = signatureCanvas.value;
+  if (!canvas) return;
+
+  // Menyesuaikan ukuran canvas dengan resolusi layar (anti-blur)
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  canvas.getContext("2d").scale(ratio, ratio);
+
+  // Jalankan library signature pad pada canvas
+  signaturePadInstance = new SignaturePad(canvas, {
+    minWidth: 1.5,     // Ketebalan garis minimum (saat goresan cepat)
+    maxWidth: 4.0,     // Ketebalan garis maksimum (saat goresan lambat)
+    penColor: '#1e293b' // Warna tinta (slate-800)
+  });
+};
+
+// 3. Fungsi Hapus Tanda Tangan
+const clearSignature = () => {
+  if (signaturePadInstance) {
+    signaturePadInstance.clear();
+    form.value.signature = '';
+  }
+};
+
+
+
+// Pantau saat dialog terbuka
+watch(dialog, async (newVal) => {
+  if (newVal) {
+    await nextTick();
+    initSignaturePad();
+  }
+});
+
+// Pantau saat dialog terbuka untuk inisialisasi context canvas
+watch(dialog, async (newVal) => {
+  if (newVal) {
+    await nextTick();
+    initSignaturePad();
+  }
+});
+
+
+
+
+
+
 const openDialog = () => { dialog.value = true; };
 const stockNotEnough = computed(() => selectedItem.value ? form.value.stock_requested > selectedItem.value.stock : false);
-
 
 
 const cart = ref([]);
@@ -333,12 +380,23 @@ const addToCart = () => {
     itemQty.value = 1;
   }
 };
+// 4. Saat Kirim Form
 const submit = async () => {
-  isLoading.value = true; // Aktifkan loading
+  if (!signaturePadInstance || signaturePadInstance.isEmpty()) {
+    // Opsional: Beri peringatan jika ttd masih kosong
+    toast.add({ severity: 'warn', summary: 'Peringatan', detail: 'Tanda tangan wajib diisi', life: 3000 });
+    return;
+  }
+
+  isLoading.value = true;
+
+  // Ambil base64 langsung dari library
+  const signatureData = signaturePadInstance.toDataURL('image/png');
 
   const payload = {
     employee_name: selectedPegawai.value.nama,
     division: selectedPegawai.value.jabatan,
+    signature: signatureData,
     items: cart.value.map(item => ({
       item_id: item.item_id,
       qty: item.qty
@@ -347,27 +405,39 @@ const submit = async () => {
 
   try {
     await store.submitRequest(payload);
-
     toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Permintaan barang telah diajukan', life: 3000 });
-    dialog.value = false;
+
     cart.value = [];
     selectedPegawai.value = null;
+    dialog.value = false;
+    clearSignature();
     await store.fetchRequests();
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Gagal', detail: err.response?.data?.message || 'Terjadi kesalahan', life: 5000 });
   } finally {
-    isLoading.value = false; // Matikan loading saat selesai (sukses atau gagal)
+    isLoading.value = false;
   }
 };
+/* 1. STATUS COLOR (Disamakan dengan Halaman Approval) */
 const statusColor = (status) => {
-  if (status === "pending") return "warn";
-  if (status === "approved_kaur") return "info";
-
-  // Staf konfirmasi atau sudah selesai dianggap berhasil/selesai
-  if (status === "confirmed_by_staff" || status === "completed") return "success";
-
-  if (status === "rejected") return "danger";
+  if (status === "pending") return "warn";             // Kuning
+  if (status === "approved_kaur") return "secondary";    // Abu-abu (Diproses)
+  if (status === "ready") return "info";                // Biru (Siap Diambil)
+  if (status === "completed") return "success";         // Hijau (Selesai/Sudah Diambil)
+  if (status === "rejected") return "danger";           // Merah
   return "secondary";
+};
+
+/* 2. MAPPING LABEL STATUS (Disamakan dengan Halaman Approval) */
+const getStatusLabel = (status) => {
+  const labels = {
+    'pending': 'Menunggu Persetujuan Kaur',
+    'approved_kaur': 'Barang Sedang Disiapkan Staf',
+    'ready': 'Barang Ready (Siap Diambil)',
+    'completed': 'Barang Sudah Diambil (Selesai)',
+    'rejected': 'Ditolak'
+  };
+  return labels[status] || status;
 };
 
 const openTimeline = (data) => {
@@ -375,12 +445,16 @@ const openTimeline = (data) => {
   timelineDialog.value = true;
 };
 
-// Heroicons render untuk komponen Timeline
+/* 3. HEROICONS RENDER (Ditambah ikon Box untuk tanda barang Ready) */
 const PaperAirplaneIcon = h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', 'stroke-width': '2', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5' })]);
 const CheckIcon = h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', 'stroke-width': '2', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'm4.5 12.75 6 6 9-13.5' })]);
 const XCircleIcon = h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', 'stroke-width': '2', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'm9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' })]);
+// Ikon Box Baru untuk status Ready
+const BoxIcon = h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', 'stroke-width': '2', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-5.25v9' })]);
 
+/* 4. DATA TIMELINE (DIURUTKAN SESUAI ALUR BARU) */
 const getTimelineData = (req) => {
+  // Titik Awal: Pengajuan masuk
   const data = [{
     status: 'Menunggu Persetujuan Kaur',
     date: req.formatted_requested_at || req.formatted_created_at,
@@ -388,9 +462,10 @@ const getTimelineData = (req) => {
     color: 'bg-blue-500'
   }];
 
+  // Tahap 1: Disetujui Kaur perlengkapan
   if (req.approved_kaur_at || req.formatted_approved_kaur_at) {
     data.push({
-      status: 'Barang sedang disiapkan',
+      status: 'Disetujui Kaur (Barang Sedang Disiapkan)',
       date: req.formatted_approved_kaur_at,
       by: req.formatted_approved_kaur_by,
       icon: CheckIcon,
@@ -398,54 +473,73 @@ const getTimelineData = (req) => {
     });
   }
 
-  // Ganti dari approved_kasi ke confirmed_by_staff
-  if (req.formatted_confirmed_by_staff_at) {
+  // Tahap 2 Baru: Staf mengonfirmasi barang telah READY di gudang
+ 
+  if (req.confirmed_by_staff_at || req.formatted_confirmed_by_staff_at) {
     data.push({
-      status: 'Barang dikeluarkan',
-      date: req.formatted_confirmed_by_staff_at,
-      by: req.formatted_confirmed_by_staff_by, // Pastikan field ini ada di model
-      icon: CheckIcon,
-      color: 'bg-emerald-500'
+      status: 'Barang Ready (Siap Diambil)',
+      date: req.formatted_confirmed_by_staff_at || req.confirmed_by_staff_at,
+      by: req.formatted_confirmed_by_staff_by || req.confirmed_by_staff_by,
+      icon: BoxIcon,
+      color: 'bg-cyan-500' // Berwarna Biru Cyan menandakan instruksi aksi ambil barang
     });
   }
 
-  if (req.formatted_rejected_at) {
+  // Tahap 3 Baru: Barang diserahkan ke tangan pemohon dan status COMPLETED
+  if (req.completed_at || req.formatted_completed_at) {
+    data.push({
+      status: 'Barang Sudah Diambil (Selesai)',
+      date: req.formatted_completed_at || req.completed_at,
+      by: req.formatted_completed_by || req.completed_by || 'Staf Perlengkapan',
+      icon: CheckIcon,
+      color: 'bg-emerald-500' // Berwarna Hijau Sukses penuh
+    });
+  }
+
+  // Jika ditolak di awal
+  if (req.rejected_at || req.formatted_rejected_at) {
     data.push({
       status: 'Permohonan Ditolak',
-      date: req.formatted_rejected_at,
-      by: req.formatted_rejected_by,
+      date: req.formatted_rejected_at || req.rejected_at,
+      by: req.formatted_rejected_by || req.rejected_by,
       icon: XCircleIcon,
       color: 'bg-red-500'
     });
   }
+
   return data;
 };
 
-/* Helper untuk label */
-const getStatusLabel = (status) => {
-  const labels = {
-    'pending': 'Menunggu Persetujuan Kaur',
-    'approved_kaur': 'Barang sedang disiapkan',
-    'confirmed_by_staff': 'Barang dikeluarkan (Selesai)',
-    'completed': 'Selesai',
-    'rejected': 'Ditolak'
-  };
-  return labels[status] || status;
-};
-
-
 const groupedRequests = computed(() => {
-  // Jika API Anda masih mengirim data per item, kita kelompokkan berdasarkan waktu & nama
   const requests = store.requests || [];
   const map = new Map();
 
   requests.forEach(req => {
-    const key = req.employee_name + req.created_at;
-    if (!map.has(key)) {
-      map.set(key, { ...req, items_count: 1 });
+    let key = "";
+
+    // 1. Tentukan key pengelompokan (Gunakan variabel 'req', bukan 'item')
+    if (req.request_code) {
+      // Utama: Gunakan request_code dari backend
+      key = req.request_code;
     } else {
+      // Cadangan: Untuk data lama milik user yang request_code-nya masih NULL
+      const minuteOnly = req.created_at ? req.created_at.substring(0, 16) : 'no-date';
+      key = `${req.employee_name}_${minuteOnly}`;
+    }
+
+    // 2. Masukkan ke dalam Map
+    if (!map.has(key)) {
+      // Jika kelompok belum ada, buat baru dan bungkus item pertamanya ke dalam array jika perlu
+      map.set(key, {
+        ...req,
+        items_count: 1,
+        items: [req] // Bagus untuk jaga-jaga kalau mau looping rincian barang di dalam komponen detail/buka-tutup
+      });
+    } else {
+      // Jika kelompok sudah ada, naikkan jumlah itemnya
       const entry = map.get(key);
       entry.items_count += 1;
+      entry.items.push(req);
     }
   });
 
@@ -453,8 +547,6 @@ const groupedRequests = computed(() => {
 });
 
 const getItemsInRequest = (req) => {
-  // Mencari semua item yang memiliki waktu permintaan (created_at) 
-  // atau identifier yang sama dengan request yang dipilih
   return store.requests.filter(item =>
     item.employee_name === req.employee_name &&
     item.created_at === req.created_at

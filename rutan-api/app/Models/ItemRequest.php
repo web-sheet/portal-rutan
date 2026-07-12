@@ -33,15 +33,22 @@ class ItemRequest extends Model
         'adjusted_stock_requested',
         'final_approved_stock',
 
-        // Tambahkan ini:
         'confirmed_by_staff_at',
         'confirmed_by_staff_by',
+
+        'signature',
+
+
+        'bon_number',
+        'bon_number_formatted',
+
+        'request_code',
     ];
 
     protected $casts = [
         'status' => RequestStatus::class,
 
-       'requested_at' => 'datetime',
+        'requested_at' => 'datetime',
         'approved_kaur_at' => 'datetime',
         'approved_kasi_at' => 'datetime',
 
@@ -65,11 +72,9 @@ class ItemRequest extends Model
         'formatted_completed_at',
         'formatted_rejected_at',
         'formatted_created_at',
-        // Tambahkan ini:
         'formatted_confirmed_by_staff_at',
+        'final_stock_requested', // FIX 1: Wajib didaftarkan di sini agar ->append() di Controller tidak error 500
     ];
-
-
 
     public function getFormattedRequestedAtAttribute()
     {
@@ -106,9 +111,21 @@ class ItemRequest extends Model
             : null;
     }
 
+    /* FIX 2: Perbarui logikanya agar mendukung hirarki kuantitas yang baru */
     public function getFinalStockRequestedAttribute()
     {
-        return $this->adjusted_stock_requested ?? $this->stock_requested;
+        // 1. Jika sudah disetujui staf, pakai angka dari staf
+        if ($this->final_approved_stock !== null) {
+            return $this->final_approved_stock;
+        }
+
+        // 2. Jika baru sampai tahap Kaur, pakai angka hasil adjust Kaur
+        if ($this->adjusted_stock_requested !== null) {
+            return $this->adjusted_stock_requested;
+        }
+
+        // 3. Jika masih pending baru, pakai angka permintaan awal pemohon
+        return $this->stock_requested;
     }
 
     public function getFormattedCreatedAtAttribute()

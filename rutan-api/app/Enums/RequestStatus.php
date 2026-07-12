@@ -8,6 +8,6 @@ enum RequestStatus: string
     case APPROVED_KAUR = 'approved_kaur';
     case APPROVED_KASI = 'approved_kasi';
     case REJECTED = 'rejected';
+    case READY = 'ready';               
     case COMPLETED = 'completed'; 
-    case CONFIRMED_BY_STAFF = 'confirmed_by_staff';
 }

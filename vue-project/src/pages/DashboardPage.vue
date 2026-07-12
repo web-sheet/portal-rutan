@@ -235,11 +235,11 @@ const chartOptions = ref({
 });
 
 
-// Buat computed untuk filter data
+ 
 const filteredApprovalQueue = computed(() => {
   const queue = dashboard.value?.approval_queue || [];
 
-  // 1. Filter berdasarkan role
+  // 1. Filter berdasarkan role (Tetap sama, tidak ada perubahan)
   let filtered = [];
   if (auth.isPerlengkapan) {
     filtered = queue.filter(item => item.status === 'pending');
@@ -249,15 +249,27 @@ const filteredApprovalQueue = computed(() => {
     filtered = queue;
   }
 
-  // 2. Grouping
+  // 2. Grouping berdasarkan request_code atau fallback waktu
   const groups = {};
   filtered.forEach(item => {
-    // Kita buat key unik berdasarkan gabungan nama pegawai dan waktu request
-    const key = `${item.employee_name}_${item.created_at}`;
+    let key = "";
+
+    if (item.request_code) {
+      // Utama: Gunakan request_code buatan backend (Akurat & Permanen)
+      key = item.request_code;
+    } else {
+      // Cadangan: Untuk data-data lama yang request_code-nya masih NULL di DB
+      // Memotong string waktu sampai ke batas menit (YYYY-MM-DD HH:mm) agar toleran milidetik
+      const minuteOnly = item.created_at ? item.created_at.substring(0, 16) : 'no-date';
+      key = `${item.employee_name}_${minuteOnly}`;
+    }
+
     if (!groups[key]) {
       groups[key] = {
+        request_code: item.request_code || null, // Tambahkan ini agar komponen UI dashboard bisa membaca kodenya jika ada
         employee_name: item.employee_name,
         status: item.status,
+        created_at: item.created_at, // Simpan waktu untuk keperluan display di dashboard
         items: [] // Simpan daftar barang dalam satu grup
       };
     }
@@ -266,7 +278,6 @@ const filteredApprovalQueue = computed(() => {
 
   return Object.values(groups);
 });
-
 /* Helper untuk label */
 const getStatusLabel = (status) => {
   const labels = {

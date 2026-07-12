@@ -19,8 +19,8 @@
               <i class="pi pi-user text-emerald-600"></i>
             </div>
             <div>
-              <p class="text-sm font-medium text-slate-800">{{ auth.user.name }}</p>
-              <p class="text-xs text-slate-500 uppercase font-semibold text-emerald-600">{{ auth.user.role }}</p>
+              <p class="text-sm font-medium uppercase text-slate-800">{{ auth.user.name }}</p>
+              <p class="text-xs text-slate-500  font-semibold text-emerald-600">{{ auth.user.role }}</p>
             </div>
           </div>
         </div>
@@ -83,8 +83,8 @@
           <i class="pi pi-user text-emerald-600"></i>
         </div>
         <div>
-          <p class="text-sm font-medium text-slate-800">{{ auth.user.name }}</p>
-          <p class="text-xs text-slate-500 uppercase font-semibold text-emerald-600">{{ auth.user.role }}</p>
+          <p class="text-sm font-medium uppercase text-slate-800">{{ auth.user.name }}</p>
+          <p class="text-xs text-slate-500  font-semibold text-emerald-600">{{ auth.user.role }}</p>
         </div>
       </div>
     </div>
@@ -95,8 +95,8 @@
           <button
             class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100"
             @click="toggleMenu(menu.label)">
-            <div class="flex items-center gap-3">
-              <i :class="menu.icon"></i>
+            <div class="flex items-center gap-3 cursor-pointer">
+              <i :class="menu.icon "></i>
               <span>{{ menu.label }}</span>
             </div>
             <i class="pi" :class="openMenus[menu.label] ? 'pi-chevron-down' : 'pi-chevron-right'" />
@@ -145,11 +145,14 @@ const router = useRouter()
 const openMenus = ref({})
 
 const menus = [
+
+  { label: 'Permohonan',  icon: 'pi pi-home', to: '/requests', roles: ['admin', 'kasi', 'perlengkapan', 'karutan', 'staf_perlengkapan'] },
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
-    roles: ['admin', 'kasi', 'perlengkapan','staf_perlengkapan'], // Role yang bisa akses
+    roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'], // Role yang bisa akses
     children: [
+      
       { label: 'Dashboard Perlengkapan', to: '/dashboard', icon: 'pi pi-home' },
       { label: 'Stok Barang', to: '/items', icon: 'pi pi-box' },
       { label: 'Permohonan Barang', to: '/request-management', icon: 'pi pi-inbox' },
@@ -171,7 +174,7 @@ const menus = [
     to: '/users-management',
     roles: ['admin'] // HANYA ADMIN
   },
-  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan','staf_perlengkapan'] },
+  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan', 'staf_perlengkapan'] },
 ]
 
 const filteredMenus = computed(() => {

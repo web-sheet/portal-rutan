@@ -179,7 +179,8 @@ const deletePegawai = async (id) => {
 
 const openCreate = () => {
     editMode.value = false;
-    form.value = { nama: "", nip: "", jabatan: "", pangkat: "", golongan: "", status: "" };
+    // Tambahkan ttd: null di inisialisasi awal
+    form.value = { nama: "", nip: "", jabatan: "", pangkat: "", golongan: "", status: "", ttd: null };
     dialog.value = true;
 };
 
@@ -193,8 +194,28 @@ const openEdit = (data) => {
         pangkat: data.pangkat,
         golongan: data.golongan,
         status: data.status,
+        ttd: data.ttd, // <-- Ambil data ttd lama dari database untuk ditampilkan di preview jika ada
     };
     dialog.value = true;
+};
+
+// --- TAMBAHAN FUNGSI BARU UNTUK PROSES BASE64 ---
+const handleTtdUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validasi ukuran file (Opsional, contoh maks 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        alert("Ukuran gambar terlalu besar! Maksimal 2MB.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        // e.target.result berisi string base64 gambar yang langsung bisa dibaca tag <img> dan disimpan ke database
+        form.value.ttd = e.target.result;
+    };
+    reader.readAsDataURL(file);
 };
 
 const save = async () => {
@@ -310,16 +331,40 @@ const save = async () => {
             </DataTable>
         </div>
 
-        <Dialog v-model:visible="detailDialog" modal header="Detail Pegawai"
-            :style="{ width: '95vw', maxWidth: '450px' }">
-            <div v-if="selectedPegawai" class="space-y-3">
-                <p><b>Nama:</b> {{ selectedPegawai.nama }}</p>
-                <p><b>NIP:</b> {{ selectedPegawai.nip }}</p>
-                <p><b>Jabatan:</b> {{ selectedPegawai.jabatan }}</p>
-                <p><b>Pangkat:</b> {{ selectedPegawai.pangkat }}</p>
-                <p><b>Golongan:</b> {{ selectedPegawai.golongan }}</p>
-                <div class="pt-2">
-                    <Tag :value="selectedPegawai.status" :severity="statusColor(selectedPegawai.status)" />
+        <Dialog v-model:visible="detailDialog" modal :style="{ width: '95vw', maxWidth: '450px' }">
+
+            <template #header>
+                <div class="w-full text-center font-semibold text-lg">
+                    Detail Pegawai
+                </div>
+            </template>
+            <div v-if="selectedPegawai" class="space-y-4">
+                <div class="space-y-3">
+                    <p><b>Nama:</b> {{ selectedPegawai.nama }}</p>
+                    <p><b>NIP:</b> {{ selectedPegawai.nip }}</p>
+                    <p><b>Jabatan:</b> {{ selectedPegawai.jabatan }}</p>
+                    <p><b>Pangkat:</b> {{ selectedPegawai.pangkat }}</p>
+                    <p><b>Golongan:</b> {{ selectedPegawai.golongan }}</p>
+                    <div class="pt-1">
+                        <Tag :value="selectedPegawai.status" :severity="statusColor(selectedPegawai.status)" />
+                    </div>
+                </div>
+
+                <!-- --- TAMBAHAN DI SINI: TAMPILAN TTD PADA DETAIL --- -->
+                <div class="  border-surface-200 pt-2 flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-surface-700">Tanda Tangan:</label>
+
+                    <!-- Jika pegawai sudah memiliki TTD -->
+                    <div v-if="selectedPegawai.ttd"
+                        class="p-3 border border-surface-200 rounded-xl bg-surface-50 flex justify-center max-w-[220px]">
+                        <img :src="selectedPegawai.ttd" alt="Tanda Tangan" class="h-20 object-contain" />
+                    </div>
+
+                    <!-- Jika pegawai belum memiliki TTD -->
+                    <div v-else
+                        class="text-xs italic text-surface-400 p-3 border border-dashed border-surface-200 rounded-xl bg-surface-50">
+                        Belum mengunggah tanda tangan digital.
+                    </div>
                 </div>
             </div>
         </Dialog>
@@ -360,6 +405,36 @@ const save = async () => {
                         { label: 'Tidak Aktif', value: 'tidak aktif' },
                     ]" optionLabel="label" optionValue="value" placeholder="Pilih status pegawai" class="w-full" />
                 </div>
+
+
+                <!-- --- TAMBAHAN DI SINI: UPLOAD TANDA TANGAN --- -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-surface-700">Tanda Tangan Digital (Gambar)</label>
+
+                    <!-- Input File Tersembunyi tapi diakali pakai Button agar Estetik -->
+                    <div
+                        class="flex items-center gap-4 p-3 border border-dashed rounded-xl bg-surface-50 border-surface-300">
+                        <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="handleTtdUpload" />
+                        <Button label="Pilih Gambar TTD" icon="pi pi-upload" severity="info" text raised size="small"
+                            @click="$refs.fileInput.click()" />
+
+                        <!-- Indikator teks jika file sudah terpilih/ada -->
+                        <span v-if="form.ttd" class="text-xs text-green-600 font-medium flex items-center gap-1">
+                            <i class="pi pi-check-circle"></i> TTD Tersimpan
+                        </span>
+                        <span v-else class="text-xs text-surface-500">Belum ada gambar ttd</span>
+                    </div>
+
+                    <!-- Preview Gambar Tanda Tangan jika ada nilainya -->
+                    <div v-if="form.ttd"
+                        class="mt-2 p-2 border border-surface-200 rounded-xl bg-white flex justify-center relative group max-w-[200px]">
+                        <img :src="form.ttd" alt="Preview TTD" class="h-20 object-contain" />
+                        <Button icon="pi pi-trash" severity="danger" rounded text
+                            class="absolute -top-2 -right-2 bg-white shadow-md" size="small" @click="form.ttd = null" />
+                    </div>
+                </div>
+
+
             </div>
 
             <template #footer>

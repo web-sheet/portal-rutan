@@ -43,6 +43,18 @@ export const useRequestStore = defineStore("request", {
       });
     },
 
+    // Aksi Staf mengubah status ke READY (dan kurangi stok)
+    async readyRequestStaf(id, qty) {
+      return await api.post(`/requests/${id}/ready-staf`, {
+        stock_requested: qty,
+      });
+    },
+
+    // Aksi Staf mengubah status ke COMPLETED (barang diambil)
+    async completeRequestStaf(id) {
+      return await api.post(`/requests/${id}/complete-staf`);
+    },
+
     async approveKasi(id, qty) {
       return await api.post(`/requests/${id}/approve-kasi`, {
         stock_requested: qty,

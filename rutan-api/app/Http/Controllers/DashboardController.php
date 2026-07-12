@@ -40,19 +40,13 @@ class DashboardController extends Controller
                 ->get(),
 
 
-            // 'approval_queue' => ItemRequest::with('item')
-            //     ->where('status', auth()->user()?->role === 'perlengkapan'
-            //         ? 'pending'
-            //         : 'approved_kaur')
-            //     ->latest()
-            //     ->take(5)
-            //     ->get(),
+      
             'approval_queue' => ItemRequest::with('item')
                 // Ambil SEMUA yang statusnya bukan 'completed' atau 'rejected'
                 // supaya Vue bisa memfilter sesuai role login
                 ->whereIn('status', ['pending', 'approved_kaur'])
                 ->latest()
-                ->take(10) // Tambahkan limit agar tidak terlalu berat
+                ->take(30) // Tambahkan limit agar tidak terlalu berat
                 ->get(),
 
         ]);

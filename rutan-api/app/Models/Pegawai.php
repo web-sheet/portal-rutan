@@ -14,6 +14,7 @@ class Pegawai extends Model
         'pangkat',
         'golongan',
         'status',
+        'ttd'
     ];
 
   

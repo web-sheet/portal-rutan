@@ -24,6 +24,7 @@ class PegawaiController extends Controller
             'jabatan' => 'nullable',
             'pangkat' => 'nullable',
             'golongan' => 'nullable',
+            'ttd' => 'nullable',
             'status' => 'nullable',
         ]);
 
@@ -52,6 +53,7 @@ class PegawaiController extends Controller
             'nama' => 'required',
             'nip' => 'nullable|unique:pegawais,nip,' . $pegawai->id,
             'pangkat' => 'nullable',
+            'ttd' => 'nullable',
             'jabatan' => 'nullable',
             'golongan' => 'nullable',
             'status' => 'nullable',
@@ -103,7 +105,7 @@ class PegawaiController extends Controller
 
                 if ($validator->fails()) {
                     // Beri tahu baris ke berapa yang duplikat (Index Excel biasanya baris ke-2 setelah header)
-                    $rowNum = $index + 2; 
+                    $rowNum = $index + 2;
                     return response()->json([
                         'message' => "Gagal import. NIP '{$item['nip']}' pada baris ke-{$rowNum} sudah terdaftar di database."
                     ], 422);
@@ -126,7 +128,6 @@ class PegawaiController extends Controller
             return response()->json([
                 'message' => "Berhasil mengimpor {$successCount} data pegawai.",
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

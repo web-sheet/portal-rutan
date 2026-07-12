@@ -68,10 +68,16 @@ Route::middleware('auth:api')->group(function () {
 
     // Pastikan route ini berada di dalam grup yang sesuai jika Anda menggunakan middleware (misal: auth:sanctum)
     Route::post('/requests/approve-bulk', [ItemRequestController::class, 'approveBulk']);
-    // Pastikan route ini berada di dalam grup yang sesuai jika Anda menggunakan middleware (misal: auth:sanctum)
-    Route::post('/requests/approve-bulk', [ItemRequestController::class, 'approveBulk']);
-
+    
     Route::post('/requests/reject-bulk', [ItemRequestController::class, 'rejectBulk']);
+
+ 
+    Route::post('/requests/{id}/ready-staf', [ItemRequestController::class, 'readyStaf']);   
+    
+    Route::post('/absensi/bulk', [AbsensiController::class, 'storeBulk']);
+    
+
+
 });
 
 
