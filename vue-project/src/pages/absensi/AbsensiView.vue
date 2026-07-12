@@ -87,7 +87,7 @@ const months = [
 
 const statusOptions = [
     { label: 'Hadir', value: 'hadir' },
-    { label: 'Izin', value: 'izin' },
+    { label: 'Tidak Apel', value: 'izin' },
     { label: 'Sakit', value: 'sakit' },
     { label: 'Cuti', value: 'cuti' },
     { label: 'Pengganti Libur', value: 'penganti_libur' },
