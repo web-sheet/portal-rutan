@@ -188,7 +188,7 @@ class ItemRequestController extends Controller
 
                     // 3. Buat format string nota klien
                     $paddedNumber = str_pad($nextBonNumber, 3, '0', STR_PAD_LEFT);
-                    $formatNomorKlien = "W.10.PAS-PAS.12-PB.02.01-{$paddedNumber}";
+                    $formatNomorKlien = "W.10.PAS-PAS.13-PB.02.01-{$paddedNumber}";
 
                     $now = Carbon::now();
 

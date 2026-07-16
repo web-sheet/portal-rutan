@@ -3,12 +3,15 @@
     :transitionOptions="'animation-duration: 250ms; animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);'">
     <template #container>
       <div class="h-full flex flex-col bg-white">
-        <div class="px-6 py-5 border-b border-slate-200">
+        <div class="px-6 py-5 border-b border-slate-200 select-none">
           <div class="flex items-center gap-3">
-            <i class="pi pi-building text-2xl text-emerald-500"></i>
+            <!-- Menggunakan tag img untuk logo, sesuaikan path_ke_logo_anda dengan variabel atau file gambar Anda -->
+            <img :src="logoPemasyarakatan" alt="Logo PRISMA" class="w-30 h-30 object-contain" />
             <div>
-              <h2 class="font-bold text-slate-800">RUTAN APP</h2>
-              <p class="text-xs text-slate-500">Portal Pengelolaan</p>
+              <h2 class="font-black text-slate-800 tracking-tight leading-none text-lg">
+                <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">PRISMA</span>
+              </h2>
+              <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-1">Platform Pengelolaan</p>
             </div>
           </div>
         </div>
@@ -67,12 +70,18 @@
   </Drawer>
 
   <aside class="hidden md:flex flex-col w-64 flex-shrink-0 bg-white border-r border-slate-200 shadow-sm">
-    <div class="px-6 py-5 border-b border-slate-200">
-      <div class="flex items-center gap-3">
-        <i class="pi pi-building text-2xl text-emerald-500"></i>
-        <div>
-          <h2 class="font-bold text-slate-800">RUTAN APP</h2>
-          <p class="text-xs text-slate-500">Portal Pengelolaan</p>
+    <div class="px-6 py-6 border-b border-slate-200/80 bg-white select-none">
+      <div class="flex items-center gap-3.5">
+        <!-- Logo Gambar Instansi -->
+        <img :src="logoPemasyarakatan" alt="Logo PRISMA" class="w-15 h-15 object-contain" />
+        <!-- Teks Identitas PRISMA Desktop -->
+        <div class="leading-tight">
+          <h2 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-1.5">
+            <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">PRISMA</span>
+          </h2>
+          <p class="text-[11px]   text-slate-400   tracking-widest mt-0.5">
+            Platform Pengelolaan
+          </p>
         </div>
       </div>
     </div>
@@ -96,7 +105,7 @@
             class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100"
             @click="toggleMenu(menu.label)">
             <div class="flex items-center gap-3 cursor-pointer">
-              <i :class="menu.icon "></i>
+              <i :class="menu.icon"></i>
               <span>{{ menu.label }}</span>
             </div>
             <i class="pi" :class="openMenus[menu.label] ? 'pi-chevron-down' : 'pi-chevron-right'" />
@@ -133,6 +142,7 @@ import Button from 'primevue/button'
 import Drawer from 'primevue/drawer'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import logoPemasyarakatan from '@/assets/logo-pemasyarakatan.png'
 
 // Memperbaiki pembacaan binding v-model agar sinkron sempurna dengan parent
 defineProps({
@@ -146,14 +156,14 @@ const openMenus = ref({})
 
 const menus = [
 
-  { label: 'Permohonan',  icon: 'pi pi-home', to: '/requests', roles: ['admin', 'kasi', 'perlengkapan', 'karutan', 'staf_perlengkapan'] },
+  { label: 'Permohonan', icon: 'pi pi-file-edit', to: '/requests', roles: ['admin', 'kasi', 'perlengkapan', 'karutan', 'staf_perlengkapan'] },
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
     roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'], // Role yang bisa akses
     children: [
-      
-      { label: 'Dashboard Perlengkapan', to: '/dashboard', icon: 'pi pi-home' },
+
+      { label: 'Dashboard SIPANDA', to: '/dashboard', icon: 'pi pi-home' },
       { label: 'Stok Barang', to: '/items', icon: 'pi pi-box' },
       { label: 'Permohonan Barang', to: '/request-management', icon: 'pi pi-inbox' },
     ]

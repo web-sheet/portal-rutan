@@ -3,9 +3,21 @@
 
         <!-- HEADER -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-            <h2 class="text-2xl font-bold">
-                Permohonan Barang
-            </h2>
+            <div class="flex items-center gap-4">
+                <!-- Logo SIPANDA -->
+                <img :src="sipanda" alt="Logo SIPANDA"
+                    class="w-12 h-12 object-contain filter drop-shadow-sm select-none" />
+
+                <!-- Teks Judul & Deskripsi -->
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight leading-none">
+                        Permohonan Barang
+                    </h2>
+                    <p class="text-sm font-medium text-slate-500 mt-1.5">
+                        Persetujuan dan pengelolaan berkas pengajuan barang persediaan
+                    </p>
+                </div>
+            </div>
         </div>
 
         <!-- FILTER -->
@@ -340,7 +352,7 @@
                     <div
                         class="flex items-center gap-2 text-surface-700 bg-white px-3 py-2 border rounded-lg border-surface-300">
                         <i class="pi pi-calendar text-surface-500"></i>
-                        <span class="text-sm font-medium">{{ formatIndoDate(selectedBonData.completed_at)}}</span>
+                        <span class="text-sm font-medium">{{ formatIndoDate(selectedBonData.completed_at) }}</span>
                     </div>
                 </div>
             </div>
@@ -377,6 +389,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from 'vue-router';
 import { jsPDF } from "jspdf";
 import Menu from 'primevue/menu'
+import sipanda from '@/assets/sipanda.png'
 
 const auth = useAuthStore();
 const pegawaiStore = usePegawaiStore();

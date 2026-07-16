@@ -6,11 +6,14 @@
 
     <div
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-200 pb-4">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-4">
+        <!-- Logo SIPANDA -->
+        <img :src="sipanda" alt="Logo SIPANDA" class="w-12 h-12 object-contain filter drop-shadow-sm select-none" />
 
+        <!-- Teks Judul -->
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">Stok Barang</h2>
-          <p class="text-sm text-slate-500">Manajemen data barang logistik gudang rutan</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight leading-none">Stok Barang</h2>
+          <p class="text-sm font-medium text-slate-500 mt-1.5">Manajemen data barang persediaan</p>
         </div>
       </div>
 
@@ -151,6 +154,7 @@ import { useItemStore } from "@/stores/item";
 import { useToast } from "primevue/usetoast";
 import * as XLSX from "xlsx"; // Import engine baca Excel
 import { useRoute, useRouter } from "vue-router"; // 1. Import router
+import sipanda from '@/assets/sipanda.png'
 
 const route = useRoute();
 const router = useRouter();

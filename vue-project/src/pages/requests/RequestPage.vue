@@ -1,45 +1,75 @@
 <template>
-  <div class="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-    <Toast />
-
-    <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-4">
+  <!-- 1. NAVBAR PREMIUM SIPANDA -->
+  <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm px-4 py-3 select-none">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Logo dan Nama Sistem -->
       <div class="flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-8 h-8 text-slate-700 shrink-0">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-        </svg>
+        <!-- Menggunakan variabel sipanda yang sudah Anda definisikan -->
+        <img :src="sipanda" alt="Logo SIPANDA" class="w-12 h-12 object-contain filter drop-shadow-sm transition-transform duration-300 hover:scale-105" />
+        
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">Tabel Permohonan Barang</h2>
-          <p class="text-sm text-slate-500">Pelacakan pengajuan peralatan Rutan Kelas I Pondok Bambu</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-black text-slate-800 tracking-tight leading-none">SIPANDA</h1>
+          
+          </div>
+          <p class="text-xs font-medium text-slate-400   sm:block mt-0.5">
+            Sistem Informasi Permintaan dan Pendistribusian Barang
+          </p>
         </div>
       </div>
 
-      <Button label="Ajukan Barang" severity="success"
+    
+
+    </div>
+  </nav>
+
+  <!-- 2. MAIN CONTENT AREA -->
+  <div class="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <Toast />
+
+    <!-- HEADER SEKSI TABEL & AJUKAN BARANG (Lebih Bersih & Compact) -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-5">
+      <div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+          Tabel Permohonan Barang
+        </h2>
+        <p class="text-sm font-medium text-slate-500 mt-1">
+          Berikut adalah data permohonan barang persediaan beserta statusnya
+        </p>
+      </div>
+
+         <Button label="Ajukan Barang" severity="success"
+
         class="w-auto p-button-sm flex items-center justify-center gap-2 self-end sm:self-auto" @click="openDialog">
+
         <template #icon>
+
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+
             class="w-4 h-4">
+
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+
           </svg>
+
         </template>
+
       </Button>
     </div>
 
-    <div class="card bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
-
-
+    <!-- TABEL DATA -->
+    <div class="card bg-white shadow-md border border-slate-200/60 rounded-2xl overflow-hidden transition-all duration-300">
       <DataTable :value="groupedRequests" :loading="store.loading" paginator :rows="10" stripedRows
         responsiveLayout="scroll" class="p-datatable-sm text-sm">
 
-        <Column field="employee_name" header="Nama Pegawai" class="font-medium text-slate-800" />
-        <Column field="division" header="Jabatan" />
+        <Column field="employee_name" header="Nama Pegawai" class="font-semibold text-slate-800 py-3" />
+        <Column field="division" header="Jabatan" class="text-slate-600" />
 
         <!-- Tampilkan jumlah barang saja dalam satu baris -->
         <Column header="Barang" class="text-center">
           <template #body="{ data }">
-            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+            <span class="bg-emerald-50 text-emerald-700 border border-emerald-200/50 px-2.5 py-1 rounded-full text-xs font-semibold">
               {{ data.items_count }} Item
             </span>
           </template>
@@ -48,92 +78,87 @@
         <Column header="Status" style="min-width: 150px;">
           <template #body="{ data }">
             <Tag :value="getStatusLabel(data.status)" :severity="statusColor(data.status)"
-              class="text-[11px] font-semibold" />
+              class="text-[11px] font-bold px-2 py-1 rounded-md" />
           </template>
         </Column>
 
-        <Column field="formatted_created_at" header="Tanggal" />
+        <Column field="formatted_created_at" header="Tanggal" class="text-slate-500" />
 
         <Column header="Detail" class="text-center">
           <template #body="{ data }">
-            <Button severity="info" text rounded @click="openTimeline(data)">
-              <i class="pi pi-eye"></i>
+            <Button severity="info" text rounded @click="openTimeline(data)" class="hover:bg-slate-50">
+              <i class="pi pi-eye text-lg text-slate-600 hover:text-emerald-600"></i>
             </Button>
           </template>
         </Column>
       </DataTable>
     </div>
 
-
-    <Dialog v-model:visible="dialog" modal :style="{ width: '500px' }" class="p-fluid">
-
+    <!-- DIALOG INPUT PENGAJUAN -->
+    <Dialog v-model:visible="dialog" modal :style="{ width: '500px' }" class="p-fluid rounded-2xl shadow-2xl">
       <template #header>
-        <div class="w-full text-center font-semibold text-lg">
+        <div class="w-full text-center font-bold text-lg text-slate-800">
           Ajukan Permintaan Barang
         </div>
       </template>
       <div class="flex flex-col gap-4 mt-2">
         <!-- Header: Pegawai & Jabatan tetap di atas -->
-        <div class="grid grid-cols-1 gap-4 pb-4 ">
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-semibold">Nama Pegawai</label>
-            <Select v-model="selectedPegawai" :options="pegawaiList" optionLabel="nama" filter />
+        <div class="grid grid-cols-1 gap-4 pb-4 border-b border-slate-100">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Pegawai</label>
+            <Select v-model="selectedPegawai" :options="pegawaiList" optionLabel="nama" filter class="rounded-xl border-slate-300" />
           </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-semibold">Jabatan</label>
-            <InputText :value="selectedPegawai?.jabatan" readonly class="bg-slate-50" />
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Jabatan</label>
+            <InputText :value="selectedPegawai?.jabatan" readonly class="bg-slate-50 rounded-xl border-slate-200" />
           </div>
         </div>
 
-
-        <!-- Tambahan: AREA TANDA TANGAN -->
-        <div class="field mb-4">
-          <label class="font-medium block mb-2">Tanda Tangan Pemohon</label>
-
+        <!-- AREA TANDA TANGAN -->
+        <div class="field mb-2">
+          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Tanda Tangan Pemohon</label>
           <!-- Wadah Canvas -->
-          <div
-            class="border border-slate-300 rounded-lg overflow-hidden bg-slate-50 relative flex justify-center items-center">
+          <div class="border border-slate-300 rounded-xl overflow-hidden bg-slate-50 relative flex justify-center items-center">
             <canvas ref="signatureCanvas" class="w-full h-[200px] block bg-white cursor-crosshair"></canvas>
           </div>
-
           <!-- Tombol Aksi Tanda Tangan -->
           <div class="flex justify-end mt-2">
             <Button type="button" label="Hapus Tanda Tangan" icon="pi pi-trash" severity="danger" text size="small"
-              @click="clearSignature" />
+              @click="clearSignature" class="text-xs font-bold" />
           </div>
         </div>
 
         <!-- Area Pilih Barang -->
-        <div class="space-y-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
-          <label class="text-sm font-semibold text-slate-700">Pilih Barang</label>
+        <div class="space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/80">
+          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Pilih Barang</label>
           <Select v-model="selectedItem" :options="availableItems" optionLabel="name" placeholder="Pilih Logistik"
-            filter class="w-full" />
+            filter class="w-full rounded-xl" />
 
           <!-- Info Stok muncul di bawah Select saat barang dipilih -->
-          <div v-if="selectedItem" class="flex justify-between items-center text-xs p-2 bg-white border rounded">
-            <span class="text-slate-600">Stok Tersedia: <b>{{ selectedItem.stock }}</b></span>
-            <InputNumber v-model="itemQty" placeholder="Qty" class="w-16" inputClass="w-16 text-center p-2" :min="1"
+          <div v-if="selectedItem" class="flex justify-between items-center text-xs p-3 bg-white border rounded-xl shadow-sm">
+            <span class="text-slate-600 font-medium">Stok Tersedia: <b class="text-emerald-600">{{ selectedItem.stock }}</b></span>
+            <InputNumber v-model="itemQty" placeholder="Qty" class="w-16" inputClass="w-16 text-center p-2 rounded-lg" :min="1"
               :max="selectedItem.stock" />
           </div>
 
           <Button label="Tambah ke Daftar" icon="pi pi-plus" @click="addToCart"
-            :disabled="!selectedItem || itemQty > selectedItem.stock" class="w-full" />
+            :disabled="!selectedItem || itemQty > selectedItem.stock" class="w-full rounded-xl bg-emerald-600 border-none" />
         </div>
 
         <!-- Tabel Daftar Barang yang akan diajukan -->
-        <div v-if="cart.length > 0">
-          <label class="text-sm font-semibold">Daftar Barang Diajukan:</label>
-          <div class="border rounded-lg mt-2 overflow-hidden">
+        <div v-if="cart.length > 0" class="space-y-2">
+          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Daftar Barang Diajukan:</label>
+          <div class="border rounded-2xl bg-white overflow-hidden shadow-sm">
             <div v-for="(item, index) in cart" :key="index"
-              class="flex justify-between items-center p-2 border-b last:border-0 text-sm">
-              <span>{{ item.name }} ({{ item.qty }})</span>
-              <Button icon="pi pi-trash" text severity="danger" @click="cart.splice(index, 1)" />
+              class="flex justify-between items-center p-3 border-b last:border-0 text-sm">
+              <span class="font-semibold text-slate-700">{{ item.name }} <span class="text-emerald-600 font-bold">({{ item.qty }})</span></span>
+              <Button icon="pi pi-trash" text severity="danger" @click="cart.splice(index, 1)" class="p-button-rounded" />
             </div>
           </div>
         </div>
 
         <Button severity="success" @click="submit" :disabled="cart.length === 0 || isLoading" :loading="isLoading"
-          class="w-full flex items-center justify-center gap-2" label="Kirim">
+          class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 border-none hover:bg-emerald-700 font-bold mt-2" label="Kirim">
           <!-- Ikon hanya muncul jika tidak sedang loading -->
           <template #icon v-if="!isLoading">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -146,20 +171,20 @@
       </div>
     </Dialog>
 
-
-    <Dialog v-model:visible="timelineDialog" modal :breakpoints="{ '641px': '95vw' }" :style="{ width: '480px' }">
+    <!-- DIALOG DETAIL/TIMELINE -->
+    <Dialog v-model:visible="timelineDialog" modal :breakpoints="{ '641px': '95vw' }" :style="{ width: '480px' }" class="rounded-2xl">
       <template #header>
-        <div class="w-full text-center font-semibold text-lg">
+        <div class="w-full text-center font-bold text-lg text-slate-800">
           Detail Permohonan
         </div>
       </template>
       <div v-if="selectedRequest" class="mt-2">
         <!-- List Barang yang Diminta -->
         <div class="mb-6">
-          <h4 class="text-sm font-semibold text-slate-700 mb-2">Daftar Barang:</h4>
-          <div class="border rounded-lg overflow-hidden bg-white">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Daftar Barang:</h4>
+          <div class="border rounded-2xl overflow-hidden bg-white shadow-sm">
             <!-- Header Kolom -->
-            <div class="grid grid-cols-12 gap-2 p-2 bg-slate-50 border-b text-xs font-bold text-slate-500 uppercase">
+            <div class="grid grid-cols-12 gap-2 p-3 bg-slate-50/80 border-b text-xs font-bold text-slate-400 uppercase tracking-wider">
               <span class="col-span-6">Nama Barang</span>
               <span class="col-span-3 text-center">Diajukan</span>
               <span class="col-span-3 text-center">Disetujui</span>
@@ -168,16 +193,13 @@
             <!-- List Item -->
             <div v-for="item in getItemsInRequest(selectedRequest)" :key="item.id"
               class="grid grid-cols-12 gap-2 items-center p-3 border-b last:border-0 text-sm">
-
-              <span class="col-span-6 text-slate-700 font-medium">{{ item.item_name }}</span>
-
-              <!-- Angka Diajukan (tengah) -->
-              <span class="col-span-3 text-center text-slate-500">
+              <span class="col-span-6 text-slate-700 font-semibold">{{ item.item_name }}</span>
+              <!-- Angka Diajukan -->
+              <span class="col-span-3 text-center text-slate-500 font-medium">
                 {{ item.stock_requested }}
               </span>
-
-              <!-- Angka Disetujui (tengah) -->
-              <span class="col-span-3 text-center font-bold text-green-600">
+              <!-- Angka Disetujui -->
+              <span class="col-span-3 text-center font-black text-emerald-600">
                 {{ item.final_approved_stock ?? item.adjusted_stock_requested ?? '-' }}
               </span>
             </div>
@@ -185,7 +207,7 @@
         </div>
 
         <!-- Timeline -->
-        <h4 class="text-sm font-semibold text-slate-700 mb-3">Status Riwayat:</h4>
+        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Status Riwayat:</h4>
         <Timeline :value="getTimelineData(selectedRequest)" class="customized-timeline">
           <template #marker="slotProps">
             <span class="flex w-8 h-8 items-center justify-center text-white rounded-full shadow-md"
@@ -194,10 +216,10 @@
             </span>
           </template>
           <template #content="slotProps">
-            <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg mb-4 ml-2">
+            <div class="bg-slate-50/50 border border-slate-200/80 p-3.5 rounded-2xl mb-4 ml-2 shadow-sm">
               <p class="font-bold text-slate-800 text-sm">{{ slotProps.item.status }}</p>
-              <p class="text-xs text-slate-500 mt-0.5">{{ slotProps.item.date }}</p>
-              <p v-if="slotProps.item.by" class="text-xs text-slate-400 mt-1 italic">Oleh: {{ slotProps.item.by }}</p>
+              <p class="text-xs text-slate-400 mt-1 font-medium">{{ slotProps.item.date }}</p>
+              <p v-if="slotProps.item.by" class="text-xs text-slate-500 mt-1.5 italic font-medium">Oleh: {{ slotProps.item.by }}</p>
             </div>
           </template>
         </Timeline>
@@ -223,6 +245,7 @@ import Timeline from 'primevue/timeline';
 import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast";
 import SignaturePad from 'signature_pad'; // 1. Import library-nya
+import sipanda from '@/assets/sipanda.png'
 
 const timelineDialog = ref(false);
 const selectedRequest = ref(null);
@@ -474,7 +497,7 @@ const getTimelineData = (req) => {
   }
 
   // Tahap 2 Baru: Staf mengonfirmasi barang telah READY di gudang
- 
+
   if (req.confirmed_by_staff_at || req.formatted_confirmed_by_staff_at) {
     data.push({
       status: 'Barang Ready (Siap Diambil)',

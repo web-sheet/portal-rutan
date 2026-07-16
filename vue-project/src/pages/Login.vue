@@ -9,6 +9,7 @@ import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
+import logoPemasyarakatan from '@/assets/logo-pemasyarakatan.png'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -64,10 +65,17 @@ const submit = async () => {
     <!-- class disesuaikan ke Tailwind (shadow-md rounded-2xl) -->
     <Card style="width: 420px" class="shadow-md rounded-2xl overflow-hidden">
       <template #title>
-        <div class="text-center">
-          <h2 class="text-2xl font-bold mb-2 text-slate-800">Portal Pengelolaan Rutan</h2>
-          <span class="text-slate-500 text-sm">
-            Silakan login untuk melanjutkan
+        <div class="text-center flex flex-col items-center justify-center">
+          <img :src="logoPemasyarakatan" alt="Logo PRISMA" class="w-30 h-30 object-contain" />
+
+          <!-- Judul PRISMA -->
+          <!-- <h2 class="text-3xl font-black mb-1 text-slate-800 tracking-tight">
+            <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">PRISMA</span>
+          </h2> -->
+
+          <!-- Subtitle -->
+          <span class="text-slate-500 text-sm font-medium mt-5">
+            Silakan login untuk melanjutkan  
           </span>
         </div>
       </template>

@@ -62,8 +62,8 @@ export const useAbsensiStore = defineStore("absensi", {
           <div style="font-size: 14px; font-weight: bold; text-transform: uppercase;">KANTOR WILAYAH DAERAH KHUSUS JAKARTA</div>
           <div style="font-size: 16px; font-weight: bold; text-transform: uppercase;">RUMAH TAHANAN NEGARA KELAS I PONDOK BAMBU</div>
           <div style="font-size: 11px; margin-top: 5px;">
-            Jalan Percetakan Negara VIII No. 54 Jakarta Pusat No. HP 08111150528<br/>
-            Laman: https://bapasjakpus.kemenkumham.go.id Pos-el: bapasjakpus.dki@gmail.com
+            Jl. Pahlawan Revolusi, Pondok Bambu - Jakarta Timur<br/>
+           
           </div>
         </td>
       </tr>
