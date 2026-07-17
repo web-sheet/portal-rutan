@@ -108,9 +108,9 @@
               <button
                 class="group w-full p-4 md:p-5 bg-slate-50/60 hover:bg-emerald-600 border border-slate-200 hover:border-emerald-600 shadow-sm hover:shadow-xl hover:shadow-emerald-600/15 rounded-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-between gap-4 text-left cursor-pointer"
                 @click="goToLogin">
-                <!-- Sisi Kiri: Logo SVG Jumbo & Teks Info -->
+
                 <div class="flex items-center gap-5">
-                  <!-- Container SVG disetarakan ke w-24 h-24 (96px) dengan rounded-2xl yang serasi -->
+
                   <div
                     class="w-24 h-24 md:w-40 md:h-40 flex items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500/20 group-hover:text-white shrink-0 transition-all duration-300 group-hover:scale-105">
                     <!-- Ukuran ikon SVG di dalam disesuaikan menjadi w-12 h-12 -->
@@ -132,7 +132,7 @@
                   </div>
                 </div>
 
-                <!-- Sisi Kanan: Indikator Panah -->
+
                 <div
                   class="text-slate-300 group-hover:text-white transition-all duration-300 transform group-hover:translate-x-1.5 shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
