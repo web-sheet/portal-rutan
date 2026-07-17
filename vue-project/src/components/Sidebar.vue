@@ -23,7 +23,10 @@
             </div>
             <div>
               <p class="text-sm font-medium uppercase text-slate-800">{{ auth.user.name }}</p>
-              <p class="text-xs text-slate-500  font-semibold text-emerald-600">{{ auth.user.role }}</p>
+              <!-- Baris ini hanya akan tampil jika role BUKAN karutan -->
+              <p v-if="!auth.isKarutan" class="text-xs text-slate-500 font-semibold text-emerald-600">
+                {{ auth.user.role }}
+              </p>
             </div>
           </div>
         </div>
@@ -93,7 +96,10 @@
         </div>
         <div>
           <p class="text-sm font-medium uppercase text-slate-800">{{ auth.user.name }}</p>
-          <p class="text-xs text-slate-500  font-semibold text-emerald-600">{{ auth.user.role }}</p>
+          <!-- Menyembunyikan role jika user adalah karutan -->
+          <p v-if="!auth.isKarutan" class="text-xs text-slate-500 font-semibold text-emerald-600">
+            {{ auth.user.role }}
+          </p>
         </div>
       </div>
     </div>
@@ -156,7 +162,7 @@ const openMenus = ref({})
 
 const menus = [
 
-  { label: 'Permohonan', icon: 'pi pi-file-edit', to: '/requests', roles: ['admin', 'kasi', 'perlengkapan', 'karutan', 'staf_perlengkapan'] },
+  { label: 'Permohonan', icon: 'pi pi-file-edit', to: '/requests', roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'] },
   {
     label: 'Perlengkapan',
     icon: 'pi pi-box',
@@ -184,7 +190,7 @@ const menus = [
     to: '/users-management',
     roles: ['admin'] // HANYA ADMIN
   },
-  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan', 'staf_perlengkapan'] },
+  { label: 'Profile', icon: 'pi pi-user', to: '/profile', roles: ['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'staf_perlengkapan'] },
 ]
 
 const filteredMenus = computed(() => {

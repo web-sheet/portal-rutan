@@ -1,6 +1,22 @@
 <template>
   <div v-if="dashboard" class="p-6 space-y-6">
 
+        <!-- HEADER -->
+    <div class="flex items-center gap-4">
+      <!-- Logo SIPANDA -->
+      <!-- <img :src="sipanda" alt="Logo SIPANDA" class="w-12 h-12 object-contain filter drop-shadow-sm select-none" /> -->
+
+      <!-- Teks Judul -->
+      <div>
+        <h1 class="text-2xl font-black text-slate-800 tracking-tight leading-none">
+          Dashboard
+        </h1>
+        <p class="text-sm font-medium text-slate-500 mt-1.5">
+          Informasi Kepegawaian
+        </p>
+      </div>
+    </div>
+
     <!-- Row Bawah: Chart Halaman -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 

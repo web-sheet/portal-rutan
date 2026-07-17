@@ -38,6 +38,8 @@ const submit = async () => {
     // Jika role adalah 'kepegawaian', arahkan ke dashboard absensi
     if (userRole === 'kepegawaian') {
       router.push('/absensi/dashboard');
+    } else   if (userRole === 'karutan') {
+      router.push('/absensi/dashboard');
     }
     // Untuk semua role lainnya (termasuk staf_perlengkapan), arahkan ke dashboard umum
     else {

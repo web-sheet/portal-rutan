@@ -114,7 +114,8 @@ const roleOptions = [
   { label: 'Kaur Kepegawaian', value: 'kepegawaian' },
   { label: 'Kasi Pengelolaan', value: 'kasi' },
   { label: 'Staf Perlengkapan', value: 'staf_perlengkapan' },
-  { label: 'Admin Aplikasi', value: 'admin' }
+  { label: 'Admin Aplikasi', value: 'admin' },
+  { label: 'Internal', value: 'karutan' }
 ];
 
 const fetchUsers = async () => {
