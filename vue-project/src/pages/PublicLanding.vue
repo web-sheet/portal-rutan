@@ -54,10 +54,10 @@
             </div>
           </div>
 
-          <!-- KOLOM KANAN: INFO & TOMBOL MENU (Diperlebar) -->
+      
           <div class="lg:col-span-7 flex flex-col text-center lg:text-left">
 
-            <!-- ROW 1: JUDUL & DESKRIPSI -->
+         
             <div class="mb-8">
               <h2 class="text-4xl md:text-4xl font-black text-slate-800 mb-1 tracking-tight leading-tight">
                 Selamat Datang di <span
@@ -68,7 +68,7 @@
               </p>
             </div>
 
-            <!-- ROW 2: DAFTAR TOMBOL DENGAN ICON SANGAT BESAR (JUMBO) -->
+         
             <div class="flex flex-col gap-4 w-full">
 
               <!-- Tombol 1: SIPANDA -->
