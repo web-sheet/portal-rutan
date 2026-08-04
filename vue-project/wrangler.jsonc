@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "portal-rutan-frontend",
+  "name": "rtnpondokbambu",
   "main": "src/main.js", // atau biarkan jika tidak ada entrypoint worker
   "assets": {
     "directory": "./dist",
