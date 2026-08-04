@@ -1,10 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "rtnpondokbambu",
-  "main": "src/main.js", // atau biarkan jika tidak ada entrypoint worker
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-app"
   },
   "observability": {
     "enabled": true
