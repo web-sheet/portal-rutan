@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { usePegawaiStore } from "@/stores/pegawai"; // UBAH: Arahkan ke Pinia Store Anda
+import { usePegawaiStore } from "@/stores/pegawai"; 
 import { useToast } from "primevue/usetoast";
 import * as XLSX from "xlsx";
 
@@ -14,7 +14,7 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
 
-const store = usePegawaiStore(); // Menggunakan Pinia Store
+const store = usePegawaiStore(); 
 const toast = useToast();
 
 const excelInput = ref(null);

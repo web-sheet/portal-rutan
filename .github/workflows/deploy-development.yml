@@ -37,7 +37,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: vue-project
-        
+
         run: npm install
 
       - name: Build Frontend
@@ -99,6 +99,33 @@ jobs:
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/rtnpondokbambu.my.id/public_html/pondokbambu/backend/
 
       # =========================
+      # GENERATE HTACCESS FROM SECRETS
+      # =========================
+      - name: Create .htaccess Files from Secrets
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            # 1. Buat .htaccess di Root (pondokbambu/)
+            cat << 'EOF' > domains/rtnpondokbambu.my.id/public_html/pondokbambu/.htaccess
+            ${{ secrets.HTACCESS_ROOT }}
+            EOF
+
+            # 2. Buat .htaccess di Frontend (frontend/)
+            cat << 'EOF' > domains/rtnpondokbambu.my.id/public_html/pondokbambu/frontend/.htaccess
+            ${{ secrets.HTACCESS_FRONTEND }}
+            EOF
+
+            # 3. Buat .htaccess di Backend (backend/)
+            cat << 'EOF' > domains/rtnpondokbambu.my.id/public_html/pondokbambu/backend/.htaccess
+            ${{ secrets.HTACCESS_BACKEND }}
+            EOF
+
+
+            # =========================
       # LARAVEL COMMANDS
       # =========================
       - name: Run Laravel Commands
