@@ -65,37 +65,24 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/absensi/dashboard-stats', [AbsensiController::class, 'getDashboardStats']);
 
-
-    // Pastikan route ini berada di dalam grup yang sesuai jika Anda menggunakan middleware (misal: auth:sanctum)
+  
     Route::post('/requests/approve-bulk', [ItemRequestController::class, 'approveBulk']);
     
     Route::post('/requests/reject-bulk', [ItemRequestController::class, 'rejectBulk']);
 
- 
-    Route::post('/requests/{id}/ready-staf', [ItemRequestController::class, 'readyStaf']);   
+     Route::post('/requests/{id}/ready-staf', [ItemRequestController::class, 'readyStaf']);   
     
     Route::post('/absensi/bulk', [AbsensiController::class, 'storeBulk']);
     
 
-
 });
 
-
-
 Route::apiResource('absensi', AbsensiController::class);
-
-// PUBLIC
 Route::post('/requests', [ItemRequestController::class, 'store']);
-
 Route::get('/items', [ItemController::class, 'index']);
-
 Route::get('/requests/{name}', [ItemRequestController::class, 'byEmployee']);
 
-// ADMIN (sementara masih auth kalau kamu mau)
 Route::get('/admin/requests', [ItemRequestController::class, 'index']);
-
 Route::get('/requests', [ItemRequestController::class, 'index']);
-
 Route::get('/dashboard', [DashboardController::class, 'index']);
-
 Route::get('/pegawai', [PegawaiController::class, 'index']);
