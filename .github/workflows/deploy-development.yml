@@ -67,8 +67,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            mkdir -p domains/pamngs.com/public_html/pondokbambu-dev/frontend
-            mkdir -p domains/pamngs.com/public_html/pondokbambu-dev/backend
+            mkdir -p domains/rtnpondokbambu.my.id/public_html/pondokbambu/frontend
+            mkdir -p domains/rtnpondokbambu.my.id/public_html/pondokbambu/backend
 
       # =========================
       # DEPLOY FRONTEND
@@ -78,7 +78,7 @@ jobs:
           rsync -avz --delete \
             -e "ssh -p ${{ secrets.PORT }}" \
             vue-project/dist/ \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/pamngs.com/public_html/pondokbambu-dev/frontend/
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/rtnpondokbambu.my.id/public_html/pondokbambu/frontend/
 
       # =========================
       # DEPLOY BACKEND
@@ -96,7 +96,7 @@ jobs:
             --exclude="storage/framework/views/**" \
             -e "ssh -p ${{ secrets.PORT }}" \
             rutan-api/ \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/pamngs.com/public_html/pondokbambu-dev/backend/
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:domains/rtnpondokbambu.my.id/public_html/pondokbambu/backend/
 
       # =========================
       # LARAVEL COMMANDS
@@ -109,7 +109,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd domains/pamngs.com/public_html/pondokbambu-dev/backend
+            cd domains/rtnpondokbambu.my.id/public_html/pondokbambu/backend
 
             echo "Installing Composer dependencies..."
             composer install --no-dev --optimize-autoloader --no-interaction
