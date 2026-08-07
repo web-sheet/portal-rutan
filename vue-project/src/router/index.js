@@ -6,34 +6,37 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import Login from "@/pages/Login.vue";
 import DashboardPage from "@/pages/DashboardPage.vue";
 
- 
 import PublicLanding from "@/pages/PublicLanding.vue";
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    
     {
       path: "/",
       name: "home",
-      component: PublicLanding,
+      component: () => import("@/pages/PublicLandingSample.vue"),
       meta: { public: true },
     },
- 
+    // {
+    //   path: "/sample",
+    //   name: "sample",
+    //   component: () => import("@/pages/PublicLandingSample.vue"),
+    //   meta: { public: true },
+    // },
+
     {
       path: "/login",
       component: Login,
       meta: { public: true },
     },
 
-     
     {
       path: "/requests",
       name: "requests",
       component: () => import("@/pages/requests/RequestPage.vue"),
       meta: { public: true },
     },
- 
+
     {
       path: "/",
       component: AppLayout,
@@ -43,19 +46,40 @@ const router = createRouter({
           path: "dashboard",
           name: "dashboard",
           component: DashboardPage,
-          meta: { allowedRoles: ["admin", "kasi", "perlengkapan","staf_perlengkapan"] },
+          meta: {
+            allowedRoles: [
+              "admin",
+              "kasi",
+              "perlengkapan",
+              "staf_perlengkapan",
+            ],
+          },
         },
         {
           path: "items",
           name: "items",
           component: () => import("@/pages/items/ItemListPage.vue"),
-          meta: { allowedRoles: ["admin", "kasi", "perlengkapan", "staf_perlengkapan"] },
+          meta: {
+            allowedRoles: [
+              "admin",
+              "kasi",
+              "perlengkapan",
+              "staf_perlengkapan",
+            ],
+          },
         },
         {
           path: "request-management",
           name: "request-management",
           component: () => import("@/pages/requests/RequestManagementPage.vue"),
-          meta: { allowedRoles: ["admin", "kasi", "perlengkapan","staf_perlengkapan"] },
+          meta: {
+            allowedRoles: [
+              "admin",
+              "kasi",
+              "perlengkapan",
+              "staf_perlengkapan",
+            ],
+          },
         },
         {
           path: "employee",
@@ -118,7 +142,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Logika pengecekan role
   if (to.meta.allowedRoles && !to.meta.allowedRoles.includes(auth.user.role)) {
-    return next('/'); // Lempar kembali ke dashboard jika tidak punya akses
+    return next("/"); // Lempar kembali ke dashboard jika tidak punya akses
   }
 
   next();
