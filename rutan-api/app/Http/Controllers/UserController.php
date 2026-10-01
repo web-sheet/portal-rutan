@@ -32,7 +32,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'username' => 'required|string|alpha_dash|max:50|unique:users',
             'password' => 'required|string|min:6',
-            'role' => ['required', Rule::in(['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan','staf_perlengkapan'])],
+            'role' => ['required', Rule::in(['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan','staf_perlengkapan','internal_rutan'])],
         ]);
 
         $user = User::create([
@@ -58,7 +58,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'username' => 'required|string|alpha_dash|max:50|unique:users,username,' . $id,
-            'role' => ['required', Rule::in(['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan'])],
+            'role' => ['required', Rule::in(['admin', 'kasi', 'kepegawaian', 'perlengkapan', 'karutan','internal_rutan'])],
             'password' => 'nullable|string|min:6', // Password opsional saat edit
         ]);
 

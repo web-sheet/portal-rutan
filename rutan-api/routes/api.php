@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\Api\FacilityReportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FacilityTypeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemRequestController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StockHistoryController;
@@ -73,9 +76,42 @@ Route::middleware('auth:api')->group(function () {
      Route::post('/requests/{id}/ready-staf', [ItemRequestController::class, 'readyStaf']);   
     
     Route::post('/absensi/bulk', [AbsensiController::class, 'storeBulk']);
+
+
+
+
+
+// Master Options
+    Route::get('/facility-reports/options', [FacilityReportController::class, 'getOptions']);
+
+    // List & Stats
+
+    Route::get('/facility-reports/dashboard-stats', [FacilityReportController::class, 'dashboardStats']);
+
+    // Submissions
+    Route::post('/facility-reports', [FacilityReportController::class, 'store']); // Pegawai
+    Route::post('/facility-reports/{id}/repair', [FacilityReportController::class, 'updateRepair']); // Kaur Perlengkapan
+
+
+    Route::get('/facility-reports', [FacilityReportController::class, 'index']);
+    Route::delete('/facility-reports/{id}', [FacilityReportController::class, 'destroy']);
+
+   // Master Locations
+    Route::get('/locations', [LocationController::class, 'index']);
+    Route::post('/locations', [LocationController::class, 'store']);
+    Route::put('/locations/{id}', [LocationController::class, 'update']);
+    Route::delete('/locations/{id}', [LocationController::class, 'destroy']);
+
+    // Master Facility Types
+    Route::get('/facility-types', [FacilityTypeController::class, 'index']);
+    Route::post('/facility-types', [FacilityTypeController::class, 'store']);
+    Route::put('/facility-types/{id}', [FacilityTypeController::class, 'update']);
+    Route::delete('/facility-types/{id}', [FacilityTypeController::class, 'destroy']);
     
 
 });
+
+
 
 Route::apiResource('absensi', AbsensiController::class);
 Route::post('/requests', [ItemRequestController::class, 'store']);
