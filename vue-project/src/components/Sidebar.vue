@@ -174,6 +174,27 @@ const menus = [
       { label: 'Permohonan Barang', to: '/request-management', icon: 'pi pi-inbox' },
     ]
   },
+    {
+    label: 'Fasilitas',
+     icon: 'pi pi-building',
+    roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'], // Role yang bisa akses
+    children: [
+
+      { label: 'Input Laporan', to: '/report-facility', icon: 'pi pi-file-edit' },
+      { label: 'Tindak Lanjut', to: '/fix-facility', icon: 'pi pi-wrench' },
+      
+    ]
+  },
+      {
+    label: 'Fasilitas',
+      icon: 'pi pi-building',
+    roles: ['internal_rutan'], // Role yang bisa akses
+    children: [
+
+      { label: 'Input Laporan', to: '/report-facility', icon: 'pi pi-file-edit' },    
+      
+    ]
+  },
   {
     label: 'Kepegawaian',
     icon: 'pi pi-users',
@@ -182,6 +203,18 @@ const menus = [
       { label: 'Dashboard Kepegawaian', to: { name: 'absensi.dashboard' }, icon: 'pi pi-home' },
       { label: 'Data Pegawai', to: '/employee', icon: 'pi pi-user' },
       { label: 'Absensi', to: '/absensi', icon: 'pi pi-calendar' },
+    ]
+  },
+
+    {
+    label: 'Data',
+    icon: 'pi pi-box',
+    roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'], // Role yang bisa akses
+    children: [
+
+      { label: 'Data Jenis', to: '/master/facility-types', icon: 'pi pi-home' },
+      { label: 'Data Lokasi', to: '/master/locations', icon: 'pi pi-box' },
+      
     ]
   },
   {

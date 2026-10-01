@@ -89,6 +89,22 @@ const router = createRouter({
         },
 
         {
+          path: "report-facility",
+          name: "report-facility",
+          component: () => import("@/components/FormPelaporan.vue"),
+          meta: {
+            allowedRoles: ["admin", "kasi", "perlengkapan", "internal_rutan","staf_perlengkapan"],
+          },
+        },
+
+        {
+          path: "fix-facility",
+          name: "fix-facility",
+          component: () => import("@/components/DaftarPerbaikan.vue"),
+          meta: { allowedRoles: ["admin", "kasi", "kepegawaian","perlengkapan","staf_perlengkapan"] },
+        },
+
+        {
           path: "/absensi",
           name: "absensi",
           component: () => import("@/pages/absensi/AbsensiView.vue"),
@@ -106,6 +122,26 @@ const router = createRouter({
           name: "users-management",
           component: () => import("@/pages/UserManagement.vue"),
           meta: { allowedRoles: "admin" },
+        },
+
+        {
+          path: "/master/locations",
+          name: "master.locations",
+          component: () => import("@/views/LocationView.vue"),
+          meta: {
+            title: "Master Lokasi",
+            allowedRoles: ["admin", "kasi", "perlengkapan","staf_perlengkapan"],
+          },
+        },
+        // Master Jenis Fasilitas
+        {
+          path: "/master/facility-types",
+          name: "master.facility-types",
+          component: () => import("@/views/FacilityTypeView.vue"),
+          meta: {
+            title: "Master Jenis Fasilitas",
+            allowedRoles: ["admin", "kasi", "perlengkapan"],
+          },
         },
 
         {

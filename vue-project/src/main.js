@@ -23,6 +23,8 @@ import Select from 'primevue/select';
 import Tag from "primevue/tag";
 import ConfirmationService from 'primevue/confirmationservice'
 import AutoComplete from 'primevue/autocomplete';
+import DatePicker from 'primevue/datepicker'
+
 
 
  
@@ -57,6 +59,7 @@ app.component("Textarea", Textarea);
 app.component("Select", Select);
 app.component("Tag", Tag);
 app.component("AutoComplete", AutoComplete);
+app.component("DatePicker", DatePicker);
  
 app.component('Chart', Chart);
 app.component('ProgressBar', ProgressBar)
