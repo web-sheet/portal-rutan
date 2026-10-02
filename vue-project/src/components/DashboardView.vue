@@ -301,8 +301,8 @@ const formatDate = (dateStr) => {
 const fetchDashboardData = async () => {
     loading.value = true;
     try {
-        // const apiUrl = import.meta.env.VITE_API_URL || 'https://rtnpondokbambu.my.id/pondokbambu/backend/public/api';
-        const apiUrl = 'http://localhost:8000/api';
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://rtnpondokbambu.my.id/pondokbambu/backend/public/api';
+        // const apiUrl = 'http://localhost:8000/api';
         
         // Mengirimkan parameter ?year=...
         const response = await axios.get(`${apiUrl}/dashboard-stats`, {
