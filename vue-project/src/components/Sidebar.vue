@@ -174,25 +174,25 @@ const menus = [
       { label: 'Permohonan Barang', to: '/request-management', icon: 'pi pi-inbox' },
     ]
   },
-    {
+  {
     label: 'Fasilitas',
-     icon: 'pi pi-building',
+    icon: 'pi pi-building',
     roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'], // Role yang bisa akses
     children: [
-
+      { label: 'Dashboard Fasilitas', to: '/dahboard-fasilitas', icon: 'pi pi-home' },
       { label: 'Input Laporan', to: '/report-facility', icon: 'pi pi-file-edit' },
       { label: 'Tindak Lanjut', to: '/fix-facility', icon: 'pi pi-wrench' },
-      
+
     ]
   },
-      {
+  {
     label: 'Fasilitas',
-      icon: 'pi pi-building',
+    icon: 'pi pi-building',
     roles: ['internal_rutan'], // Role yang bisa akses
     children: [
 
-      { label: 'Input Laporan', to: '/report-facility', icon: 'pi pi-file-edit' },    
-      
+      { label: 'Input Laporan', to: '/report-facility', icon: 'pi pi-file-edit' },
+
     ]
   },
   {
@@ -206,7 +206,7 @@ const menus = [
     ]
   },
 
-    {
+  {
     label: 'Data',
     icon: 'pi pi-box',
     roles: ['admin', 'kasi', 'perlengkapan', 'staf_perlengkapan'], // Role yang bisa akses
@@ -214,7 +214,7 @@ const menus = [
 
       { label: 'Data Jenis', to: '/master/facility-types', icon: 'pi pi-home' },
       { label: 'Data Lokasi', to: '/master/locations', icon: 'pi pi-box' },
-      
+
     ]
   },
   {

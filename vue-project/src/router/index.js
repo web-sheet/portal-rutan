@@ -155,6 +155,11 @@ const router = createRouter({
           name: "absensi.dashboard",
           component: () => import("@/views/AbsensiDashboard.vue"),
         },
+                {
+          path: "dahboard-fasilitas",
+          name: "dahboard-fasilitas",
+          component: () => import("@/components/DashboardView.vue"),
+        },
       ],
     },
   ],

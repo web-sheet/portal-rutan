@@ -107,11 +107,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/facility-types', [FacilityTypeController::class, 'store']);
     Route::put('/facility-types/{id}', [FacilityTypeController::class, 'update']);
     Route::delete('/facility-types/{id}', [FacilityTypeController::class, 'destroy']);
+
+ 
     
 
 });
 
-
+   // Route untuk data statistik Dashboard
+    Route::get('/dashboard-stats', [FacilityReportController::class, 'dashboardStats']);
 
 Route::apiResource('absensi', AbsensiController::class);
 Route::post('/requests', [ItemRequestController::class, 'store']);
