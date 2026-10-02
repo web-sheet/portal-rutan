@@ -454,10 +454,10 @@ const storageUrl = (path) => {
         return path;
     }
 
-    // 2. Base URL hardcode khusus production
+    
     const storageBase = 'https://rtnpondokbambu.my.id/pondokbambu/backend/public/storage';
 
-    // 3. Gabungkan dan bersihkan 'storage/' ganda jika ada
+   
     return `${storageBase}/${path.replace(/^\/?(storage\/)?/, '')}`;
 };
 
@@ -471,7 +471,7 @@ const storageUrl = (path) => {
 // };
 
 const loadReports = async (page = 1) => {
-    // 1. Panggil store
+   
     await facilityStore.fetchReports(page, selectedStatus.value);
 
     // 2. Log isi store
