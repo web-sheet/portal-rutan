@@ -346,7 +346,10 @@ const confirmDelete = (report) => {
 const budgetOptions = ['DIPA Kantor', 'Swadaya', 'Pihak ke 3'];
 const storageUrl = (path) => {
     if (!path) return '';
-    return `http://127.0.0.1:8000/storage/${path}`;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+
+    const storageBase = import.meta.env.VITE_STORAGE_URL || 'http://127.0.0.1:8000/storage';
+    return `${storageBase}/${path.replace(/^\/?(storage\/)?/, '')}`;
 };
 
 const loadReports = async (page = 1) => {
