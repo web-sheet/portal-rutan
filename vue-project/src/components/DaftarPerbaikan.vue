@@ -346,9 +346,16 @@ const confirmDelete = (report) => {
 const budgetOptions = ['DIPA Kantor', 'Swadaya', 'Pihak ke 3'];
 const storageUrl = (path) => {
     if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    
+    // 1. Jika path sudah berupa URL lengkap dari API, langsung pakai
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
 
-    const storageBase = import.meta.env.VITE_STORAGE_URL || 'http://127.0.0.1:8000/storage';
+    // 2. Base URL hardcode khusus production
+    const storageBase = 'https://rtnpondokbambu.my.id/pondokbambu/backend/public/storage';
+
+    // 3. Gabungkan dan bersihkan 'storage/' ganda jika ada
     return `${storageBase}/${path.replace(/^\/?(storage\/)?/, '')}`;
 };
 
