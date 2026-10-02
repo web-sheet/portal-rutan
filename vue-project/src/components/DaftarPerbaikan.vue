@@ -18,7 +18,7 @@
                     <!-- Input Search -->
                     <div class="flex-1 min-w-[220px]">
                         <IconField iconPosition="left" class="w-full">
-                       
+
                             <InputText v-model="searchQuery" placeholder="Cari pelapor, lokasi, fasilitas..."
                                 class="w-full !text-sm" />
                         </IconField>
@@ -52,7 +52,7 @@
                 <!-- Information Count Hasil Filter -->
                 <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
                     <div class="flex items-center gap-1.5">
-                     
+
                         <span>
                             Menampilkan
                             <strong class="text-slate-800 font-semibold">{{ filteredReports.length }}</strong>
@@ -309,9 +309,31 @@ const facilityStore = useFacilityStore();
 const reports = computed(() => facilityStore.reports);
 const loading = computed(() => facilityStore.loading);
 
-// Ambil list master data untuk dropdown option (pastikan store kamu punya data ini)
-const facilityTypes = computed(() => facilityStore.facilityTypes || []);
-const locations = computed(() => facilityStore.locations || []);
+// Ekstrak Unique Jenis Fasilitas dari data laporan
+const facilityTypes = computed(() => {
+    const map = new Map();
+    reports.value.forEach(item => {
+        if (item.facility_type && item.facility_type.id) {
+            map.set(item.facility_type.id, item.facility_type);
+        } else if (item.facility_type_id && item.facility_type_name) {
+            map.set(item.facility_type_id, { id: item.facility_type_id, name: item.facility_type_name });
+        }
+    });
+    return Array.from(map.values());
+});
+
+// Ekstrak Unique Lokasi dari data laporan
+const locations = computed(() => {
+    const map = new Map();
+    reports.value.forEach(item => {
+        if (item.location && item.location.id) {
+            map.set(item.location.id, item.location);
+        } else if (item.location_id && item.location_name) {
+            map.set(item.location_id, { id: item.location_id, name: item.location_name });
+        }
+    });
+    return Array.from(map.values());
+});
 
 
 const toast = useToast();
@@ -454,10 +476,10 @@ const storageUrl = (path) => {
         return path;
     }
 
-    
+
     const storageBase = 'https://rtnpondokbambu.my.id/pondokbambu/backend/public/storage';
 
-   
+
     return `${storageBase}/${path.replace(/^\/?(storage\/)?/, '')}`;
 };
 
@@ -471,7 +493,7 @@ const storageUrl = (path) => {
 // };
 
 const loadReports = async (page = 1) => {
-   
+
     await facilityStore.fetchReports(page, selectedStatus.value);
 
     // 2. Log isi store
